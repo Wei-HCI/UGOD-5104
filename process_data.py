@@ -163,8 +163,3 @@ if __name__ == "__main__":
     # 4. 导出结果 (只保留可视化必需字段，减少文件大小)
     output_cols = ['Lat', 'Lng', 'unit_price', 'accessibility_index']
     df_tianhe[output_cols].to_csv('final_data_tianhe.csv', index=False, float_format='%.4f')
-    
-    print("3. 处理完成！")
-    print(f"   已生成文件: final_data_tianhe.csv")
-    print(f"   平均便利指数: {df_tianhe['accessibility_index'].mean():.1f}")
-    print(f"   Top3 便利小区: \n{df_tianhe.nlargest(3, 'accessibility_index')[['block','accessibility_index']]}")
