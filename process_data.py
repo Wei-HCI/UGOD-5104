@@ -163,3 +163,7 @@ if __name__ == "__main__":
     # 4. 导出结果 (只保留可视化必需字段，减少文件大小)
     output_cols = ['Lat', 'Lng', 'unit_price', 'accessibility_index']
     df_tianhe[output_cols].to_csv('final_data_tianhe.csv', index=False, float_format='%.4f')
+    print("3. 便利度指标计算完成，结果已保存至 'final_data_tianhe.csv'。")
+
+
+
