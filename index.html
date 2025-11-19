@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Price of Convenience: Tianhe Housing Analysis</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/deck.gl@8.9.33/dist.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { margin: 0; background: #020617; overflow: hidden; font-family: 'Inter', sans-serif; }
+        #map-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 0; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Range Slider Styling */
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%;
+            background: #f8fafc; cursor: pointer; margin-top: -5px; box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+            transition: transform 0.1s;
+        }
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; cursor: pointer; background: #334155; border-radius: 2px;
+        }
+
+        /* Animations */
+        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fade-in { animation: fade-in 0.8s ease-out forwards; }
+        @keyframes slide-up { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-slide-up { animation: slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slide-right { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .animate-slide-right { animation: slide-right 0.5s ease-out forwards; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef, useCallback } = React;
+
+        // --- Icons ---
+        const Icon = ({ name, size = 18, className }) => {
+            const icons = {
+                map: <g><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></g>,
+                info: <g><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></g>,
+                layers: <g><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></g>,
+                filter: <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>,
+                x: <g><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></g>
+            };
+            return (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    {icons[name] || icons.info}
+                </svg>
+            );
+        };
+
+        // --- Optimized DeckGL Map Component ---
+        // 修复核心：使用 useRef 保存实例，只更新 props，不销毁重建
+        const DeckGLMap = React.memo(({ layers, onHover }) => {
+            const deckRef = useRef(null);
+
+            useEffect(() => {
+                // Initialize ONLY ONCE
+                const deckInstance = new deck.DeckGL({
+                    container: 'map-container',
+                    initialViewState: {
+                        longitude: 113.340,
+                        latitude: 23.135,
+                        zoom: 12.8,
+                        pitch: 50,
+                        bearing: -10
+                    },
+                    controller: { inertia: true }, // 增加惯性，拖动更平滑
+                    layers: [], // Initial empty layers
+                    getTooltip: ({object}) => object && object.name,
+                    onHover: onHover,
+                    useDevicePixels: false, // 性能优化：视网膜屏不开启超高分渲染，大幅提升FPS
+                });
+                
+                deckRef.current = deckInstance;
+
+                return () => {
+                    if (deckInstance) deckInstance.finalize();
+                };
+            }, []); // Empty dependency array = Run once on mount
+
+            // Update layers when they change
+            useEffect(() => {
+                if (deckRef.current) {
+                    deckRef.current.setProps({ layers });
+                }
+            }, [layers]);
+
+            return <div id="map-container"></div>;
+        });
+
+        // --- Landing Page ---
+        const LandingPage = ({ onStart }) => (
+            <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/95 text-white p-6 text-center animate-fade-in">
+                <div className="max-w-3xl space-y-8">
+                    <div className="inline-block px-4 py-1.5 border border-blue-500/30 rounded-full bg-blue-500/10 text-blue-400 text-xs font-mono tracking-widest uppercase mb-4">
+                        GEOG 5104 Group Project
+                    </div>
+                    <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-red-400 pb-2 animate-slide-up">
+                        The Price of Convenience
+                    </h1>
+                    <p className="text-xl text-slate-400 font-light leading-relaxed animate-slide-up" style={{animationDelay: '0.1s'}}>
+                        Spatial Correlation Analysis between <span className="text-white font-normal">Public Service Accessibility</span> and <span className="text-white font-normal">Housing Prices</span> in Tianhe District.
+                    </p>
+                    <button 
+                        onClick={onStart}
+                        className="group relative px-10 py-4 bg-white text-slate-900 font-bold rounded-full hover:scale-105 transition-all shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] animate-slide-up"
+                        style={{animationDelay: '0.3s'}}
+                    >
+                        Start Exploration
+                    </button>
+                    <div className="absolute bottom-8 left-0 right-0 text-xs text-slate-600 font-mono animate-fade-in" style={{animationDelay: '0.5s'}}>
+                        Team Members: Ken & Partner
+                    </div>
+                </div>
+            </div>
+        );
+
+        // --- Report Modal ---
+        const ReportModal = ({ isOpen, onClose }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="absolute inset-0 z-50 flex justify-center bg-slate-900/80 backdrop-blur-sm overflow-y-auto py-10 animate-fade-in">
+                    <div className="w-full max-w-4xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-8 md:p-12 h-fit relative animate-slide-up">
+                        <button onClick={onClose} className="absolute top-6 right-6 p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors">
+                            <Icon name="x" size={24} />
+                        </button>
+                        <div className="prose prose-invert max-w-none">
+                            <h2 className="text-3xl font-bold text-white mb-2">Project Report</h2>
+                            <p className="text-slate-400 mb-8 border-b border-slate-800 pb-6">
+                                A comprehensive analysis of spatial equity and capital intensity in Guangzhou's CBD.
+                            </p>
+                            <div className="grid md:grid-cols-3 gap-8">
+                                <div className="md:col-span-2 space-y-8 text-sm text-slate-300">
+                                    <section>
+                                        <h3 className="text-lg font-semibold text-blue-400 mb-2">1. Background</h3>
+                                        <p>In Tianhe District, a hyper-dense urban core, we investigate whether convenience is equitably distributed.</p>
+                                    </section>
+                                    <section>
+                                        <h3 className="text-lg font-semibold text-purple-400 mb-2">2. Methodology</h3>
+                                        <ul className="list-disc list-inside space-y-1">
+                                            <li>Data: Lianjia Housing Data & OSM POIs.</li>
+                                            <li>Analysis: Weighted Accessibility Index (0-100).</li>
+                                            <li>Viz: Hexagon Aggregation (Price vs Access).</li>
+                                        </ul>
+                                    </section>
+                                    <section>
+                                        <h3 className="text-lg font-semibold text-red-400 mb-2">3. Findings</h3>
+                                        <p>Strong correlation in CBD, but distinct "Value Depressions" found in northern areas (Longdong).</p>
+                                    </section>
+                                </div>
+                                <div className="bg-slate-800/50 p-6 rounded-xl h-fit border border-slate-700/50 text-sm">
+                                    <h4 className="font-bold text-white mb-4 uppercase text-xs tracking-widest">Tech Stack</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {['React', 'Deck.gl', 'Tailwind', 'Python'].map(tag => (
+                                            <span key={tag} className="px-2 py-1 bg-slate-700 text-slate-300 text-xs rounded">{tag}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Main App ---
+        function App() {
+            const [view, setView] = useState('landing');
+            const [showReport, setShowReport] = useState(false);
+            const [sidebarOpen, setSidebarOpen] = useState(true);
+            
+            const [data, setData] = useState([]);
+            const [hoverInfo, setHoverInfo] = useState(null);
+            
+            // 优化核心：分离UI状态（滑块显示）和数据状态（地图计算）
+            const [uiPrice, setUiPrice] = useState([10000, 150000]);
+            const [filterPrice, setFilterPrice] = useState([10000, 150000]);
+            
+            const [uiAccess, setUiAccess] = useState([0, 100]);
+            const [filterAccess, setFilterAccess] = useState([0, 100]);
+            
+            const [uiRadius, setUiRadius] = useState(150);
+            const [filterRadius, setFilterRadius] = useState(150);
+
+            // Load Data
+            useEffect(() => {
+                Papa.parse('final_data_tianhe.csv', {
+                    download: true, header: true, dynamicTyping: true,
+                    complete: (results) => {
+                        if (results.data && results.data.length > 0) {
+                            const validData = results.data.filter(d => d.Lat && d.Lng && d.unit_price);
+                            setData(validData);
+                        }
+                    }
+                });
+            }, []);
+
+            // Memoize filtered data based on COMMITTED filter values (not UI values)
+            const filteredData = useMemo(() => {
+                return data.filter(d => 
+                    d.unit_price >= filterPrice[0] && 
+                    d.unit_price <= filterPrice[1] &&
+                    d.accessibility_index >= filterAccess[0] &&
+                    d.accessibility_index <= filterAccess[1]
+                );
+            }, [data, filterPrice, filterAccess]);
+
+            // Memoize layers
+            const layers = useMemo(() => {
+                return [
+                    new deck.TileLayer({
+                        id: 'basemap',
+                        data: 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                        minZoom: 0, maxZoom: 19, tileSize: 256,
+                        renderSubLayers: props => {
+                            const {bbox: {west, south, east, north}} = props.tile;
+                            return new deck.BitmapLayer(props, {
+                                data: null, image: props.data, bounds: [west, south, east, north]
+                            });
+                        }
+                    }),
+                    new deck.HexagonLayer({
+                        id: 'heatmap',
+                        data: filteredData,
+                        pickable: true,
+                        extruded: true,
+                        radius: filterRadius, 
+                        elevationScale: 6,
+                        getPosition: d => [d.Lng, d.Lat],
+                        getElevationValue: points => points.reduce((sum, p) => sum + p.unit_price, 0) / points.length,
+                        getColorValue: points => points.reduce((sum, p) => sum + p.accessibility_index, 0) / points.length,
+                        colorDomain: [0, 80], 
+                        colorRange: [
+                            [44, 123, 182], [171, 217, 233], [255, 255, 191], [253, 174, 97], [215, 25, 28]
+                        ],
+                        transitions: {
+                            elevationScale: 600, // Smooth transition
+                            getColorValue: { duration: 300 }
+                        }
+                    })
+                ];
+            }, [filteredData, filterRadius]); // Only recreate layers when filtered data or radius changes
+
+            // Optimized Hover Handler
+            const onHover = useCallback(({object, x, y}) => {
+                setHoverInfo(object ? {x, y, price: object.elevationValue, score: object.colorValue, count: object.points.length} : null);
+            }, []);
+
+            return (
+                <div className="relative w-full h-screen bg-slate-950 text-slate-100">
+                    <DeckGLMap layers={layers} onHover={onHover} />
+
+                    {view === 'landing' && <LandingPage onStart={() => setView('dashboard')} />}
+
+                    {view === 'dashboard' && (
+                        <>
+                            <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-start z-10 pointer-events-none">
+                                <div className="pointer-events-auto animate-slide-up" style={{animationDelay: '0.1s'}}>
+                                    <h2 className="text-2xl font-bold text-white drop-shadow-md font-mono">Tianhe Housing <span className="text-blue-400">Explorer</span></h2>
+                                    <div className="flex gap-2 mt-2">
+                                        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/90 text-xs font-medium text-white rounded-lg hover:bg-slate-700 transition shadow-lg border border-slate-600">
+                                            <Icon name="filter" size={14}/> {sidebarOpen ? 'Hide Controls' : 'Show Controls'}
+                                        </button>
+                                        <button onClick={() => setShowReport(true)} className="flex items-center gap-2 px-3 py-1.5 bg-blue-600/90 text-xs font-medium text-white rounded-lg hover:bg-blue-500 transition shadow-lg border border-blue-500">
+                                            <Icon name="info" size={14}/> Report
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {sidebarOpen && (
+                                <div className="absolute top-28 left-4 w-72 glass-panel p-5 rounded-xl shadow-2xl z-10 animate-slide-right text-slate-100 max-h-[75vh] overflow-y-auto custom-scrollbar">
+                                    <div className="space-y-6">
+                                        {/* Price Filter - 核心优化：onChange只更UI，onMouseUp触发计算 */}
+                                        <div>
+                                            <div className="flex justify-between mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Price Range (¥/m²)</div>
+                                            <div className="flex items-end justify-between mb-2 text-sm font-mono text-yellow-400">
+                                                <span>{(uiPrice[0]/10000).toFixed(1)}w</span>
+                                                <span>{(uiPrice[1]/10000).toFixed(1)}w</span>
+                                            </div>
+                                            <input type="range" min="10000" max="80000" step="1000" value={uiPrice[0]} 
+                                                onChange={e=>setUiPrice([Math.min(+e.target.value, uiPrice[1]), uiPrice[1]])}
+                                                onMouseUp={()=>setFilterPrice(uiPrice)} // Commit on release
+                                                onTouchEnd={()=>setFilterPrice(uiPrice)}
+                                                className="mb-2"/>
+                                            <input type="range" min="80000" max="200000" step="1000" value={uiPrice[1]} 
+                                                onChange={e=>setUiPrice([uiPrice[0], Math.max(+e.target.value, uiPrice[0])])}
+                                                onMouseUp={()=>setFilterPrice(uiPrice)} // Commit on release
+                                                onTouchEnd={()=>setFilterPrice(uiPrice)}/>
+                                        </div>
+
+                                        {/* Access Filter */}
+                                        <div>
+                                            <div className="flex justify-between mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Accessibility Score</div>
+                                            <div className="flex items-center justify-between mb-2"><span className="text-sm font-mono text-blue-400">&ge; {uiAccess[0]}</span></div>
+                                            <input type="range" min="0" max="100" value={uiAccess[0]} 
+                                                onChange={e=>setUiAccess([+e.target.value, 100])} 
+                                                onMouseUp={()=>setFilterAccess(uiAccess)} // Commit on release
+                                                onTouchEnd={()=>setFilterAccess(uiAccess)}
+                                                className="accent-blue-500"/>
+                                        </div>
+
+                                        {/* Radius Filter */}
+                                        <div>
+                                            <div className="flex justify-between mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Hex Radius</div>
+                                            <div className="flex items-center justify-between mb-2"><span className="text-sm font-mono text-purple-400">{uiRadius} meters</span></div>
+                                            <input type="range" min="50" max="500" step="10" value={uiRadius} 
+                                                onChange={e=>setUiRadius(+e.target.value)} 
+                                                onMouseUp={()=>setFilterRadius(uiRadius)} // Commit on release
+                                                onTouchEnd={()=>setFilterRadius(uiRadius)}
+                                                className="accent-purple-500"/>
+                                        </div>
+                                        
+                                        <div className="pt-4 border-t border-slate-700/50 text-xs text-slate-500 italic">
+                                            * Tip: Release slider to update map
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {hoverInfo && (
+                                <div style={{position: 'absolute', left: hoverInfo.x, top: hoverInfo.y, transform: 'translate(-50%, -120%)', pointerEvents: 'none', zIndex: 100}} className="glass-panel p-4 rounded-xl shadow-2xl min-w-[200px]">
+                                    <div className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 border-b border-slate-700 pb-1">Cluster Info</div>
+                                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                                        <span className="text-slate-400">Units:</span><span className="text-white font-mono text-right">{hoverInfo.count}</span>
+                                        <span className="text-slate-400">Price:</span><span className="text-yellow-400 font-mono text-right">¥{Math.round(hoverInfo.price).toLocaleString()}</span>
+                                        <span className="text-slate-400">Access:</span><span className="text-blue-400 font-mono text-right">{Math.round(hoverInfo.score)}</span>
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
+                    <ReportModal isOpen={showReport} onClose={() => setShowReport(false)} />
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
