@@ -237,10 +237,10 @@
         // --- POI Data (Synced) ---
         const POI_DATA = {
             'subway': [
-                {'name': '体育西路', 'lat': 23.1319, 'lng': 113.3213}, {'name': '珠江新城', 'lat': 23.1192, 'lng': 113.3212},
+                {'name': '体育西路', 'lat': 23.1315, 'lng': 113.3220}, {'name': '珠江新城', 'lat': 23.1192, 'lng': 113.3212},
                 {'name': '猎德', 'lat': 23.1186, 'lng': 113.3324}, {'name': '广州东站', 'lat': 23.1492, 'lng': 113.3260},
                 {'name': '华师', 'lat': 23.1400, 'lng': 113.3460}, {'name': '岗顶', 'lat': 23.1335, 'lng': 113.3390},
-                {'name': '石牌桥', 'lat': 23.1330, 'lng': 113.3320}, {'name': '员村', 'lat': 23.1140, 'lng': 113.3620},
+                {'name': '石牌桥', 'lat': 23.1332, 'lng': 113.3335}, {'name': '员村', 'lat': 23.1140, 'lng': 113.3620},
                 {'name': '科韵路', 'lat': 23.1190, 'lng': 113.3740}, {'name': '车陂南', 'lat': 23.1105, 'lng': 113.3954},
                 {'name': '车陂', 'lat': 23.1230, 'lng': 113.3960}, {'name': '天河公园', 'lat': 23.1240, 'lng': 113.3660},
                 {'name': '燕塘', 'lat': 23.1560, 'lng': 113.3270}, {'name': '天河客运站', 'lat': 23.1713, 'lng': 113.3451},
@@ -249,14 +249,14 @@
                 {'name': '[Buffer] 广州塔', 'lat': 23.1060, 'lng': 113.3240}, {'name': '[Buffer] 梅花园', 'lat': 23.1650, 'lng': 113.3150}
             ],
             'mall': [
-                {'name': '天河城/正佳', 'lat': 23.1315, 'lng': 113.3276}, {'name': '太古汇', 'lat': 23.1345, 'lng': 113.3330},
+                {'name': '天河城/正佳', 'lat': 23.1315, 'lng': 113.3226}, {'name': '太古汇', 'lat': 23.1335, 'lng': 113.3335},
                 {'name': '天环/IGC/K11', 'lat': 23.1170, 'lng': 113.3340}, {'name': '东方宝泰', 'lat': 23.1480, 'lng': 113.3260},
                 {'name': '美林M-LIVE', 'lat': 23.1100, 'lng': 113.4180}, {'name': '[Buffer] 友谊商店', 'lat': 23.1380, 'lng': 113.2960},
                 {'name': '[Buffer] 丽影广场', 'lat': 23.0970, 'lng': 113.3210}
             ],
             'school': [
                 {'name': '华阳/体育东/华附', 'lat': 23.1410, 'lng': 113.3285}, {'name': '天府路/113中', 'lat': 23.1270, 'lng': 113.3600},
-                {'name': '广州中学', 'lat': 23.1350, 'lng': 113.3300}, {'name': '[Buffer] 执信中学', 'lat': 23.1280, 'lng': 113.2960}
+                {'name': '广州中学', 'lat': 23.1350, 'lng': 113.3300}, {'name': '[Buffer] 执信中学', 'lat': 23.132372, 'lng': 113.293533}
             ],
             'park': [
                 {'name': '天河公园', 'lat': 23.1245, 'lng': 113.3650}, {'name': '珠江公园', 'lat': 23.1180, 'lng': 113.3350},
@@ -264,8 +264,8 @@
                 {'name': '[Buffer] 白云山东门', 'lat': 23.1680, 'lng': 113.2980}
             ],
             'public_service': [
-                {'name': '中山三院/体育中心', 'lat': 23.1320, 'lng': 113.3400}, {'name': '珠江新城公建群', 'lat': 23.1150, 'lng': 113.3210},
-                {'name': '[Buffer] 中山一院', 'lat': 23.1280, 'lng': 113.2960}, {'name': '[Buffer] 南方医院', 'lat': 23.1860, 'lng': 113.3280}
+                {'name': '中山三院/体育中心', 'lat': 23.1320, 'lng': 113.3400}, {'name': '珠江新城公建群', 'lat': 23.1190, 'lng': 113.3212},
+                {'name': '[Buffer] 中山一院', 'lat': 23.126353, 'lng': 113.291201}
             ]
         };
 
@@ -1146,7 +1146,7 @@
                                     <hr style={{borderColor:'rgba(255,255,255,0.08)'}}/>
                                     <div>
                                         <div className="flex justify-between mb-2 label-sm">
-                                            <span>Price Filter</span>
+                                            <span>Price Filter: </span>
                                             <span className="text-yellow-400 value-mono">{(filterPrice[0]/10000).toFixed(0)}-{(filterPrice[1]/10000).toFixed(0)}w</span>
                                         </div>
                                         <input type="range" min="10000" max="200000" step="5000" value={filterPrice[0]} 
@@ -1156,7 +1156,7 @@
                                     </div>
                                     <div>
                                         <div className="flex justify-between mb-2 label-sm">
-                                            <span>Access Score</span>
+                                            <span>Access Score: </span>
                                             <span className="text-blue-400 value-mono">{filterAccess[0]}-{filterAccess[1]}</span>
                                         </div>
                                         <input type="range" min="0" max="100" value={filterAccess[0]} onChange={e=>setFilterAccess([Math.min(Number(e.target.value), filterAccess[1]), filterAccess[1]])}/>
