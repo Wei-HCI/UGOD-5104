@@ -1408,29 +1408,37 @@
 
 ## 可用命令:
 - updateMapFilter: {"action":"updateMapFilter","priceMin":10000,"priceMax":50000,"accessMin":50,"accessMax":100}
+  注意：priceMin和priceMax的单位是 元/平米
 - setPersona: {"action":"setPersona","personaType":"graduate|family|retiree|standard"}
 - togglePOI: {"action":"togglePOI","poiType":"subway|mall|school|park|public_service","visible":true}
 - flyToArea: {"action":"flyToArea","areaName":"珠江新城|员村|石牌桥|天河公园|龙洞"}
 - compareAreas: {"action":"compareAreas"}
 
-## 价格理解:
-- "3000" 或 "3k" = 30000元/平米
+## 价格理解（重要！）:
+用户说的预算数字直接就是 元/平米：
+- "预算3000" = 3000元/平米 = priceMax: 3000
+- "预算5000" = 5000元/平米 = priceMax: 5000
+- "1万" 或 "10000" = 10000元/平米
+- "3万" = 30000元/平米
 - "5万" = 50000元/平米
 - "8-10万" = 80000-100000元/平米
+
+天河区房价范围大约是 10000-150000 元/平米，如果用户预算低于10000，说明可能是刚毕业预算有限。
 
 ## 重要规则:
 1. message字段必须用中文写完整的回复句子，不能只有表情符号
 2. 回复要友好、具体，说明做了什么操作以及推荐的区域
 3. 不要使用markdown代码块
+4. 价格单位始终是"元/平米"，在回复中也要说清楚
 
 ## 示例:
-用户: "我刚毕业，预算3000，要离地铁近"
+用户: "我刚毕业，预算3万，要离地铁近"
 回复:
-{"commands":[{"action":"setPersona","personaType":"graduate"},{"action":"updateMapFilter","priceMin":10000,"priceMax":35000,"accessMin":60,"accessMax":100},{"action":"togglePOI","poiType":"subway","visible":true}],"message":"好的！我已为您筛选出3.5万/平米以下、地铁可达性高的区域。推荐您重点关注员村和石牌桥，这两个区域性价比很高，距离地铁站都在步行10分钟以内。"}
+{"commands":[{"action":"setPersona","personaType":"graduate"},{"action":"updateMapFilter","priceMin":10000,"priceMax":30000,"accessMin":60,"accessMax":100},{"action":"togglePOI","poiType":"subway","visible":true}],"message":"好的！我已为您筛选出3万元/平米以下、地铁可达性高的区域。推荐您重点关注员村和石牌桥，这两个区域性价比很高，距离地铁站都在步行10分钟以内。"}
 
 用户: "珠江新城附近有什么房源"
 回复:
-{"commands":[{"action":"flyToArea","areaName":"珠江新城"},{"action":"updateMapFilter","priceMin":50000,"priceMax":150000,"accessMin":70,"accessMax":100}],"message":"已定位到珠江新城核心区域。这里是天河最繁华的CBD，房价普遍在5-15万/平米，但交通和配套设施非常完善，适合追求品质生活的家庭。"}`;
+{"commands":[{"action":"flyToArea","areaName":"珠江新城"},{"action":"updateMapFilter","priceMin":50000,"priceMax":150000,"accessMin":70,"accessMax":100}],"message":"已定位到珠江新城核心区域。这里是天河最繁华的CBD，房价普遍在5-15万元/平米，交通和配套设施非常完善，适合追求品质生活的家庭。"}`;
 
             // === AI MESSAGE HANDLING ===
             const handleSendMessage = async (userMessage) => {
@@ -1564,7 +1572,7 @@
 
             // Quick prompt buttons
             const quickPrompts = [
-                '我刚毕业，预算3000，要离地铁近',
+                '我刚毕业，预算3万，要离地铁近',
                 '帮我找学区房，预算8-10万',
                 '适合退休的安静区域',
                 '珠江新城附近的房源'
@@ -2430,19 +2438,21 @@
                                             <div ref={messagesEndRef} />
                                         </div>
 
-                                        {/* Quick Prompts - 始终显示 */}
-                                        <div className="quick-prompts">
-                                            {quickPrompts.map((prompt, idx) => (
-                                                <button
-                                                    key={idx}
-                                                    className="quick-prompt"
-                                                    onClick={() => handleSendMessage(prompt)}
-                                                    disabled={isTyping}
-                                                >
-                                                    {prompt}
-                                                </button>
-                                            ))}
-                                        </div>
+                                        {/* Quick Prompts - 只在开始时显示 */}
+                                        {messages.length <= 1 && (
+                                            <div className="quick-prompts">
+                                                {quickPrompts.map((prompt, idx) => (
+                                                    <button
+                                                        key={idx}
+                                                        className="quick-prompt"
+                                                        onClick={() => handleSendMessage(prompt)}
+                                                        disabled={isTyping}
+                                                    >
+                                                        {prompt}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
 
                                         {/* Input Area */}
                                         <div className="ai-chat-input-area">
