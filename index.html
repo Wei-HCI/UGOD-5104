@@ -210,6 +210,11 @@
 
         .fade-in-up { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; transform: translateY(20px); }
         @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
 
         /* 辅助文本 */
         .label-sm { font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -482,6 +487,11 @@
             // Persona Filter State
             const [selectedPersona, setSelectedPersona] = useState('standard');
             
+            // Comparison Mode State
+            const [comparisonMode, setComparisonMode] = useState(false);
+            const [comparisonA, setComparisonA] = useState(null);
+            const [comparisonB, setComparisonB] = useState(null);
+            
             // Persona 配置：不同角色对各因素的权重
             const PERSONAS = {
                 standard: {
@@ -723,6 +733,15 @@
                             const g = i >= colors.length - 1 ? colors[colors.length - 1][1] : Math.round(colors[i][1] + (colors[i+1][1] - colors[i][1]) * f);
                             const b = i >= colors.length - 1 ? colors[colors.length - 1][2] : Math.round(colors[i][2] + (colors[i+1][2] - colors[i][2]) * f);
                             
+                            // 对比模式高亮
+                            if (comparisonMode) {
+                                if (comparisonA && d.Lat === comparisonA.Lat && d.Lng === comparisonA.Lng) {
+                                    return [239, 68, 68, 240]; // 红色 - Point A
+                                }
+                                if (comparisonB && d.Lat === comparisonB.Lat && d.Lng === comparisonB.Lng) {
+                                    return [59, 130, 246, 240]; // 蓝色 - Point B
+                                }
+                            }
                             // 如果是选中的房屋，显示高亮饱和颜色
                             if (selectedHousing && d.Lat === selectedHousing.Lat && d.Lng === selectedHousing.Lng) {
                                 return [r, g, b, 240];
@@ -731,6 +750,15 @@
                             return [r, g, b, 120];
                         },
                         getLineColor: d => {
+                            // 对比模式边框
+                            if (comparisonMode) {
+                                if (comparisonA && d.Lat === comparisonA.Lat && d.Lng === comparisonA.Lng) {
+                                    return [239, 68, 68, 255]; // 红色边框 - A
+                                }
+                                if (comparisonB && d.Lat === comparisonB.Lat && d.Lng === comparisonB.Lng) {
+                                    return [59, 130, 246, 255]; // 蓝色边框 - B
+                                }
+                            }
                             if (selectedHousing && d.Lat === selectedHousing.Lat && d.Lng === selectedHousing.Lng) {
                                 // 选中时使用金黄色边框，更醒目
                                 return [255, 215, 0, 255];
@@ -738,6 +766,12 @@
                             return [255, 255, 255, 60];
                         },
                         getLineWidth: d => {
+                            if (comparisonMode) {
+                                if ((comparisonA && d.Lat === comparisonA.Lat && d.Lng === comparisonA.Lng) ||
+                                    (comparisonB && d.Lat === comparisonB.Lat && d.Lng === comparisonB.Lng)) {
+                                    return 100; // 对比模式更粗边框
+                                }
+                            }
                             if (selectedHousing && d.Lat === selectedHousing.Lat && d.Lng === selectedHousing.Lng) {
                                 return 80; // 选中时更粗的边框
                             }
@@ -771,13 +805,29 @@
                         },
                         onClick: (info) => {
                             if (info.object) {
-                                setSelectedHousing(info.object);
+                                if (comparisonMode) {
+                                    // 对比模式：依次选择A和B
+                                    if (!comparisonA) {
+                                        setComparisonA(info.object);
+                                    } else if (!comparisonB) {
+                                        // 确保不选择同一个点
+                                        if (info.object.Lat !== comparisonA.Lat || info.object.Lng !== comparisonA.Lng) {
+                                            setComparisonB(info.object);
+                                        }
+                                    } else {
+                                        // 两个都选了，重新开始
+                                        setComparisonA(info.object);
+                                        setComparisonB(null);
+                                    }
+                                } else {
+                                    setSelectedHousing(info.object);
+                                }
                             }
                         },
                         updateTriggers: {
-                            getFillColor: [selectedHousing, selectedPersona],
-                            getLineColor: selectedHousing,
-                            getLineWidth: selectedHousing
+                            getFillColor: [selectedHousing, selectedPersona, comparisonMode, comparisonA, comparisonB],
+                            getLineColor: [selectedHousing, comparisonMode, comparisonA, comparisonB],
+                            getLineWidth: [selectedHousing, comparisonMode, comparisonA, comparisonB]
                         },
                         transitions: { getRadius: 300, getFillColor: 300, getLineWidth: 200 }
                     })
@@ -882,7 +932,7 @@
                 }
                 
                 return layerList;
-            }, [filteredData, radius, elevationScale, poiVisible, selectedHousing, showStaticBuffer, showDynamicIsochrone, isochroneData, bufferRadius, selectedPersona]);
+            }, [filteredData, radius, elevationScale, poiVisible, selectedHousing, showStaticBuffer, showDynamicIsochrone, isochroneData, bufferRadius, selectedPersona, comparisonMode, comparisonA, comparisonB]);
 
             // POI Button
             const PoiToggle = ({ id, label }) => (
@@ -958,6 +1008,111 @@
                                     </div>
                                     <hr style={{borderColor:'rgba(255,255,255,0.08)'}}/>
                                     
+                                    {/* Comparison Mode */}
+                                    <div>
+                                        <div className="label-sm mb-3">Comparison Mode</div>
+                                        <button 
+                                            className={`poi-btn ${comparisonMode ? 'active' : ''}`}
+                                            onClick={() => {
+                                                setComparisonMode(!comparisonMode);
+                                                if (comparisonMode) {
+                                                    setComparisonA(null);
+                                                    setComparisonB(null);
+                                                }
+                                            }}
+                                            style={{width:'100%', justifyContent:'flex-start', marginBottom:'8px'}}
+                                        >
+                                            <div style={{width:'10px', height:'10px', background: comparisonMode ? '#f59e0b' : 'transparent', border:'2px solid #f59e0b', borderRadius:'2px'}}></div>
+                                            {comparisonMode ? 'Exit Comparison' : 'Compare Two Points'}
+                                        </button>
+                                        {comparisonMode && (
+                                            <div style={{fontSize:'10px', color:'#94a3b8', lineHeight:'1.5'}}>
+                                                {!comparisonA && !comparisonB && '👆 Click first housing block (Point A)'}
+                                                {comparisonA && !comparisonB && '👆 Click second housing block (Point B)'}
+                                                {comparisonA && comparisonB && '✓ Both selected. Click any point to restart.'}
+                                            </div>
+                                        )}
+                                        {comparisonMode && comparisonA && (
+                                            <div style={{marginTop:'8px', padding:'8px', background:'rgba(239, 68, 68, 0.1)', border:'1px solid rgba(239, 68, 68, 0.3)', borderRadius:'6px'}}>
+                                                <div style={{fontSize:'10px', color:'#ef4444', fontWeight:'600', marginBottom:'2px'}}>🔴 Point A</div>
+                                                <div style={{fontSize:'11px', color:'#e2e8f0'}}>¥{Math.round(comparisonA.unit_price).toLocaleString()}/㎡ · Score: {comparisonA.score.toFixed(0)}</div>
+                                            </div>
+                                        )}
+                                        {comparisonMode && comparisonB && (
+                                            <div style={{marginTop:'6px', padding:'8px', background:'rgba(59, 130, 246, 0.1)', border:'1px solid rgba(59, 130, 246, 0.3)', borderRadius:'6px'}}>
+                                                <div style={{fontSize:'10px', color:'#3b82f6', fontWeight:'600', marginBottom:'2px'}}>🔵 Point B</div>
+                                                <div style={{fontSize:'11px', color:'#e2e8f0'}}>¥{Math.round(comparisonB.unit_price).toLocaleString()}/㎡ · Score: {comparisonB.score.toFixed(0)}</div>
+                                            </div>
+                                        )}
+                                        {comparisonMode && comparisonA && comparisonB && (
+                                            <div style={{marginTop:'10px', padding:'10px', background:'rgba(255,255,255,0.05)', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.1)'}}>
+                                                <div style={{fontSize:'10px', color:'#f59e0b', fontWeight:'600', marginBottom:'8px'}}>📊 COMPARISON ANALYSIS</div>
+                                                
+                                                {/* Price Comparison */}
+                                                <div style={{marginBottom:'8px'}}>
+                                                    <div style={{display:'flex', justifyContent:'space-between', fontSize:'10px', color:'#64748b', marginBottom:'4px'}}>
+                                                        <span>Price Gap</span>
+                                                        <span style={{color: comparisonA.unit_price > comparisonB.unit_price ? '#ef4444' : '#3b82f6', fontWeight:'600'}}>
+                                                            {(Math.max(comparisonA.unit_price, comparisonB.unit_price) / Math.min(comparisonA.unit_price, comparisonB.unit_price)).toFixed(1)}x
+                                                        </span>
+                                                    </div>
+                                                    <div style={{height:'6px', background:'#1e293b', borderRadius:'3px', overflow:'hidden', display:'flex'}}>
+                                                        <div style={{width:`${(comparisonA.unit_price / (comparisonA.unit_price + comparisonB.unit_price)) * 100}%`, background:'#ef4444', transition:'width 0.3s'}}></div>
+                                                        <div style={{flex:1, background:'#3b82f6'}}></div>
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Access Score Comparison */}
+                                                <div style={{marginBottom:'8px'}}>
+                                                    <div style={{display:'flex', justifyContent:'space-between', fontSize:'10px', color:'#64748b', marginBottom:'4px'}}>
+                                                        <span>Access Score</span>
+                                                        <span style={{color:'#10b981', fontWeight:'600'}}>
+                                                            {Math.abs(comparisonA.score - comparisonB.score) < 5 ? '≈ Similar' : 
+                                                             comparisonA.score > comparisonB.score ? 'A > B' : 'B > A'}
+                                                        </span>
+                                                    </div>
+                                                    <div style={{height:'6px', background:'#1e293b', borderRadius:'3px', overflow:'hidden', display:'flex'}}>
+                                                        <div style={{width:`${(comparisonA.score / (comparisonA.score + comparisonB.score)) * 100}%`, background:'#ef4444', transition:'width 0.3s'}}></div>
+                                                        <div style={{flex:1, background:'#3b82f6'}}></div>
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Value Ratio - Price per Access Point */}
+                                                <div style={{marginBottom:'8px'}}>
+                                                    <div style={{display:'flex', justifyContent:'space-between', fontSize:'10px', color:'#64748b', marginBottom:'4px'}}>
+                                                        <span>Value Ratio (¥/Score)</span>
+                                                    </div>
+                                                    <div style={{display:'flex', gap:'8px', fontSize:'10px'}}>
+                                                        <div style={{flex:1, textAlign:'center', padding:'4px', background:'rgba(239,68,68,0.1)', borderRadius:'4px'}}>
+                                                            <div style={{color:'#ef4444'}}>A: ¥{Math.round(comparisonA.unit_price / comparisonA.score).toLocaleString()}</div>
+                                                        </div>
+                                                        <div style={{flex:1, textAlign:'center', padding:'4px', background:'rgba(59,130,246,0.1)', borderRadius:'4px'}}>
+                                                            <div style={{color:'#3b82f6'}}>B: ¥{Math.round(comparisonB.unit_price / comparisonB.score).toLocaleString()}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Insight */}
+                                                <div style={{fontSize:'9px', color:'#64748b', lineHeight:'1.5', marginTop:'8px', padding:'8px', background:'rgba(245,158,11,0.1)', borderRadius:'4px', borderLeft:'2px solid #f59e0b'}}>
+                                                    {(() => {
+                                                        const priceRatio = comparisonA.unit_price / comparisonB.unit_price;
+                                                        const scoreRatio = comparisonA.score / comparisonB.score;
+                                                        if (priceRatio > 1.5 && Math.abs(scoreRatio - 1) < 0.2) {
+                                                            return '💡 Similar accessibility but huge price gap - classic spatial inequality pattern.';
+                                                        } else if (priceRatio > 1.3 && scoreRatio > 1.2) {
+                                                            return '💡 Higher price reflects better accessibility - market pricing is rational here.';
+                                                        } else if (priceRatio < 0.8 && scoreRatio > 1) {
+                                                            return '💡 Lower price but better access - potential undervalued area!';
+                                                        } else {
+                                                            return '💡 Compare how location affects property value vs. public resource access.';
+                                                        }
+                                                    })()}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <hr style={{borderColor:'rgba(255,255,255,0.08)'}}/>
+                                    
                                     {/* Isochrone Controls */}
                                     <div>
                                         <div className="label-sm mb-3">Accessibility Analysis</div>
@@ -1023,7 +1178,7 @@
                                         </svg>
                                     </button>
                                     
-                                    {/* Housing Image - Random from 4 images */}
+                                    {/* Housing Image - Random from house1-4.png */}
                                     <div style={{width:'100%', height:'160px', background:'#f8fafc', display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden'}}>
                                         <img 
                                             src={`house${((Math.floor(selectedHousing.Lat * 10000) + Math.floor(selectedHousing.Lng * 10000)) % 4) + 1}.png`}
