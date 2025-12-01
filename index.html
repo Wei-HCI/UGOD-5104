@@ -1357,7 +1357,8 @@
                     };
                     const target = areas[targetArea];
                     if (target) {
-                        setViewState(prev => ({ ...prev, ...target, pitch: 30, bearing: 0 }));
+                        // 保持用户当前的 pitch 视角，不强制改变
+                        setViewState(prev => ({ ...prev, ...target, bearing: prev.bearing }));
                         return `✓ Flying to ${targetArea}`;
                     }
                     return `✗ Area "${targetArea}" not found`;
@@ -2427,21 +2428,19 @@
                                             <div ref={messagesEndRef} />
                                         </div>
 
-                                        {/* Quick Prompts */}
-                                        {messages.length <= 2 && (
-                                            <div className="quick-prompts">
-                                                {quickPrompts.map((prompt, idx) => (
-                                                    <button
-                                                        key={idx}
-                                                        className="quick-prompt"
-                                                        onClick={() => handleSendMessage(prompt)}
-                                                        disabled={isTyping}
-                                                    >
-                                                        {prompt}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
+                                        {/* Quick Prompts - 始终显示 */}
+                                        <div className="quick-prompts">
+                                            {quickPrompts.map((prompt, idx) => (
+                                                <button
+                                                    key={idx}
+                                                    className="quick-prompt"
+                                                    onClick={() => handleSendMessage(prompt)}
+                                                    disabled={isTyping}
+                                                >
+                                                    {prompt}
+                                                </button>
+                                            ))}
+                                        </div>
 
                                         {/* Input Area */}
                                         <div className="ai-chat-input-area">
