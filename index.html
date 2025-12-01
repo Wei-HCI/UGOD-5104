@@ -226,6 +226,494 @@
             color: #9aa0a6;
             font-weight: 400;
         }
+        
+        /* AI Chatbot 样式 */
+        .ai-chat-toggle {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 28px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .ai-chat-toggle:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 28px rgba(102, 126, 234, 0.5);
+        }
+        .ai-chat-toggle.expanded {
+            transform: rotate(45deg);
+        }
+        
+        .ai-chat-panel {
+            position: fixed;
+            bottom: 96px;
+            left: 24px;
+            width: 380px;
+            max-height: 520px;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .ai-chat-panel.open {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .ai-chat-header {
+            padding: 16px 20px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .ai-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ai-chat-title {
+            flex: 1;
+        }
+        .ai-chat-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+        .ai-chat-title p {
+            margin: 2px 0 0 0;
+            font-size: 11px;
+            color: #64748b;
+        }
+        
+        .ai-chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 320px;
+            min-height: 200px;
+        }
+        .ai-chat-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+        .ai-chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .ai-chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+        }
+        
+        .chat-message {
+            display: flex;
+            gap: 10px;
+            animation: messageSlide 0.3s ease forwards;
+        }
+        @keyframes messageSlide {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .chat-message.user {
+            flex-direction: row-reverse;
+        }
+        .chat-message-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 12px;
+        }
+        .chat-message.ai .chat-message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .chat-message.user .chat-message-avatar {
+            background: #3b82f6;
+        }
+        .chat-message-content {
+            max-width: 75%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .chat-message.ai .chat-message-content {
+            background: rgba(255, 255, 255, 0.08);
+            color: #e2e8f0;
+            border-bottom-left-radius: 4px;
+        }
+        .chat-message.user .chat-message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .chat-message-action {
+            margin-top: 8px;
+            padding: 8px 10px;
+            background: rgba(102, 126, 234, 0.15);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            font-size: 11px;
+            color: #a78bfa;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .chat-message-action::before {
+            content: '⚡';
+        }
+        
+        .ai-chat-input-area {
+            padding: 12px 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .ai-chat-input {
+            flex: 1;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #e2e8f0;
+            font-size: 13px;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .ai-chat-input:focus {
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .ai-chat-input::placeholder {
+            color: #64748b;
+        }
+        .ai-chat-send {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .ai-chat-send:hover {
+            transform: scale(1.05);
+        }
+        .ai-chat-send:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            width: fit-content;
+        }
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #64748b;
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typingBounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-4px); }
+        }
+        
+        .quick-prompts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 0 16px 12px 16px;
+        }
+        .quick-prompt {
+            padding: 6px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            font-size: 11px;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .quick-prompt:hover {
+            background: rgba(102, 126, 234, 0.15);
+            border-color: rgba(102, 126, 234, 0.4);
+            color: #a78bfa;
+        }
+
+        /* Methodology Page - Full Screen Navigation Style */
+        .methodology-page {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        .methodology-page.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .methodology-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: #ffffff;
+            border-bottom: 1px solid #f1f3f4;
+            display: flex;
+            align-items: center;
+            padding: 0 40px;
+            z-index: 10001;
+        }
+        
+        .methodology-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #202124;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .methodology-logo:hover {
+            opacity: 0.7;
+        }
+        .methodology-logo svg {
+            width: 28px;
+            height: 28px;
+        }
+        
+        .methodology-tabs {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 60px;
+            flex: 1;
+        }
+        
+        .methodology-tab {
+            padding: 8px 16px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #5f6368;
+            background: transparent;
+            border: none;
+            border-radius: 100px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .methodology-tab:hover {
+            background: #f1f3f4;
+            color: #202124;
+        }
+        .methodology-tab.active {
+            background: #e8f0fe;
+            color: #1a73e8;
+        }
+        
+        .methodology-close-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #ffffff;
+            background: #1a1a1a;
+            border: none;
+            border-radius: 100px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .methodology-close-btn:hover {
+            background: #000000;
+        }
+        
+        .methodology-body {
+            flex: 1;
+            margin-top: 64px;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .methodology-canvas {
+            position: fixed;
+            top: 64px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .methodology-section {
+            position: relative;
+            z-index: 1;
+            min-height: calc(100vh - 64px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 80px 40px;
+            text-align: center;
+        }
+        
+        .methodology-section-content {
+            max-width: 800px;
+            text-align: left;
+        }
+        
+        .methodology-section h1 {
+            font-size: 3.5rem;
+            font-weight: 400;
+            color: #202124;
+            margin: 0 0 1.5rem 0;
+            letter-spacing: -0.02em;
+            text-align: center;
+        }
+        
+        .methodology-section h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #202124;
+            margin: 2rem 0 1rem 0;
+        }
+        
+        .methodology-section p {
+            font-size: 1.125rem;
+            line-height: 1.8;
+            color: #5f6368;
+            margin-bottom: 1.25rem;
+        }
+        
+        .methodology-section ul {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+        
+        .methodology-section li {
+            position: relative;
+            padding-left: 28px;
+            margin-bottom: 1rem;
+            font-size: 1.0625rem;
+            line-height: 1.7;
+            color: #5f6368;
+        }
+        
+        .methodology-section li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 10px;
+            width: 8px;
+            height: 8px;
+            background: #4285f4;
+            border-radius: 50%;
+        }
+        
+        .methodology-section li:nth-child(2)::before { background: #ea4335; }
+        .methodology-section li:nth-child(3)::before { background: #fbbc04; }
+        .methodology-section li:nth-child(4)::before { background: #34a853; }
+        .methodology-section li:nth-child(5)::before { background: #4285f4; }
+        
+        .methodology-section strong {
+            color: #202124;
+            font-weight: 600;
+        }
+        
+        .methodology-highlight {
+            display: inline-block;
+            padding: 4px 12px;
+            background: linear-gradient(135deg, #e8f0fe 0%, #fce8e6 100%);
+            border-radius: 4px;
+            font-weight: 500;
+            color: #1a73e8;
+        }
+        
+        .methodology-stat {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .methodology-stat-item {
+            text-align: center;
+        }
+        
+        .methodology-stat-value {
+            font-size: 2.5rem;
+            font-weight: 300;
+            color: #1a73e8;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .methodology-stat-label {
+            font-size: 0.875rem;
+            color: #5f6368;
+            margin-top: 4px;
+        }
+        
+        .section-divider {
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, #4285f4, #ea4335, #fbbc04, #34a853);
+            border-radius: 2px;
+            margin: 0 auto 2rem auto;
+        }
     </style>
 </head>
 <body>
@@ -269,8 +757,324 @@
             ]
         };
 
+        // --- Methodology Page Component (Full Screen with Tabs) ---
+        const MethodologyPage = ({ isOpen, onClose }) => {
+            const [activeTab, setActiveTab] = useState('intro');
+            const canvasRef = useRef(null);
+            const particlesRef = useRef([]);
+            const mouseRef = useRef({ x: 0, y: 0 });
+            
+            const tabs = [
+                { id: 'intro', label: 'Introduction' },
+                { id: 'data', label: 'Data Sources' },
+                { id: 'methodology', label: 'Methodology' },
+                { id: 'visualization', label: 'Visualization' },
+                { id: 'results', label: 'Results' },
+                { id: 'limitations', label: 'Limitations' },
+                { id: 'reflection', label: 'Reflection' }
+            ];
+            
+            // Particle effect for methodology page
+            useEffect(() => {
+                if (!isOpen) return;
+                
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                
+                const ctx = canvas.getContext('2d');
+                let animationId;
+                let width = window.innerWidth;
+                let height = window.innerHeight - 64;
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                // Different particle configs for different sections
+                const particleConfigs = {
+                    intro: { count: 80, color: [66, 133, 244], size: [2, 5] },
+                    data: { count: 100, color: [52, 168, 83], size: [1, 4] },
+                    methodology: { count: 120, color: [234, 67, 53], size: [2, 6] },
+                    visualization: { count: 90, color: [251, 188, 4], size: [3, 7] },
+                    results: { count: 100, color: [66, 133, 244], size: [2, 5] },
+                    limitations: { count: 60, color: [234, 67, 53], size: [1, 3] },
+                    reflection: { count: 150, color: [52, 168, 83], size: [1, 4] }
+                };
+                
+                const config = particleConfigs[activeTab] || particleConfigs.intro;
+                const particles = [];
+                
+                for (let i = 0; i < config.count; i++) {
+                    particles.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        baseX: Math.random() * width,
+                        baseY: Math.random() * height,
+                        size: Math.random() * (config.size[1] - config.size[0]) + config.size[0],
+                        speedX: (Math.random() - 0.5) * 0.4,
+                        speedY: (Math.random() - 0.5) * 0.4,
+                        opacity: Math.random() * 0.4 + 0.2
+                    });
+                }
+                particlesRef.current = particles;
+                
+                const handleMouseMove = (e) => {
+                    mouseRef.current = { x: e.clientX, y: e.clientY - 64 };
+                };
+                
+                const handleResize = () => {
+                    width = window.innerWidth;
+                    height = window.innerHeight - 64;
+                    canvas.width = width;
+                    canvas.height = height;
+                };
+                
+                window.addEventListener('mousemove', handleMouseMove);
+                window.addEventListener('resize', handleResize);
+                
+                const animate = () => {
+                    ctx.clearRect(0, 0, width, height);
+                    
+                    const mouse = mouseRef.current;
+                    const interactionRadius = 120;
+                    
+                    particles.forEach(p => {
+                        const dx = mouse.x - p.x;
+                        const dy = mouse.y - p.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < interactionRadius) {
+                            const force = (interactionRadius - distance) / interactionRadius;
+                            const angle = Math.atan2(dy, dx);
+                            p.x -= Math.cos(angle) * force * 6;
+                            p.y -= Math.sin(angle) * force * 6;
+                        } else {
+                            p.x += (p.baseX - p.x) * 0.03;
+                            p.y += (p.baseY - p.y) * 0.03;
+                        }
+                        
+                        p.baseX += p.speedX;
+                        p.baseY += p.speedY;
+                        
+                        if (p.baseX < 0 || p.baseX > width) p.speedX *= -1;
+                        if (p.baseY < 0 || p.baseY > height) p.speedY *= -1;
+                        
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(${config.color[0]}, ${config.color[1]}, ${config.color[2]}, ${p.opacity})`;
+                        ctx.fill();
+                    });
+                    
+                    animationId = requestAnimationFrame(animate);
+                };
+                
+                animate();
+                
+                return () => {
+                    window.removeEventListener('mousemove', handleMouseMove);
+                    window.removeEventListener('resize', handleResize);
+                    cancelAnimationFrame(animationId);
+                };
+            }, [isOpen, activeTab]);
+            
+            if (!isOpen) return null;
+            
+            const renderContent = () => {
+                switch(activeTab) {
+                    case 'intro':
+                        return (
+                            <div className="methodology-section">
+                                <div className="methodology-section-content">
+                                    <h1>Introduction</h1>
+                                    <div className="section-divider"></div>
+                                    <p>Tianhe District, as the economic engine of Guangzhou, exhibits extreme heterogeneity in housing prices, ranging from luxury apartments in Zhujiang New Town to aging institutional dormitories.</p>
+                                    <p>While the mantra <span className="methodology-highlight">"Location, Location, Location"</span> is well-known, simple distance measurements often fail to capture the complex agglomeration effects of urban amenities.</p>
+                                    <p>This project aims to visualize and analyze the spatial relationship between urban accessibility and housing capital using a WebGIS approach.</p>
+                                    
+                                    <h2>Research Questions</h2>
+                                    <ul>
+                                        <li><strong>RQ1 (Macro):</strong> To what extent does multi-centric accessibility (considering schools, malls, transit, etc.) explain housing price variations?</li>
+                                        <li><strong>RQ2 (Micro):</strong> Where are the spatial outliers (Premiums & Discounts)? What drives the divergence between "locational value" and "market price"?</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        );
+                    case 'data':
+                        return (
+                            <div className="methodology-section">
+                                <div className="methodology-section-content">
+                                    <h1>Data Sources</h1>
+                                    <div className="section-divider"></div>
+                                    
+                                    <div className="methodology-stat">
+                                        <div className="methodology-stat-item">
+                                            <div className="methodology-stat-value">6,605</div>
+                                            <div className="methodology-stat-label">Housing Records</div>
+                                        </div>
+                                        <div className="methodology-stat-item">
+                                            <div className="methodology-stat-value">5</div>
+                                            <div className="methodology-stat-label">POI Categories</div>
+                                        </div>
+                                        <div className="methodology-stat-item">
+                                            <div className="methodology-stat-value">2024-25</div>
+                                            <div className="methodology-stat-label">Time Period</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <ul>
+                                        <li><strong>Housing Data:</strong> Second-hand housing transaction records crawled from Lianjia.com (2024-2025). Attributes include unit price (RMB/m²), community name, and GCJ-02 coordinates.</li>
+                                        <li><strong>Point of Interest (POI):</strong> Sourced from OpenStreetMap and Gaode Map API, covering 5 categories: Subway Stations, Shopping Malls, Schools, Parks, and Public Services (Hospitals/Libraries).</li>
+                                        <li><strong>Boundary Data:</strong> Tianhe District administrative boundary (GeoJSON).</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        );
+                    case 'methodology':
+                        return (
+                            <div className="methodology-section">
+                                <div className="methodology-section-content">
+                                    <h1>Methodology</h1>
+                                    <div className="section-divider"></div>
+                                    
+                                    <h2>Data Processing & Spatial Analysis</h2>
+                                    <p>We moved beyond simple "nearest distance" analysis to a gravity-based approach:</p>
+                                    <ul>
+                                        <li><strong>Gravity Model (Gaussian Decay):</strong> We calculated an accessibility score for each housing block based on cumulative opportunities. A Gaussian decay function was applied to simulate the diminishing willingness to travel as distance increases.</li>
+                                        <li><strong>Entropy Weight Method (EWM):</strong> Instead of subjective weighting, we used EWM to objectively assign weights based on data variance. The results highlighted Education (0.44) and Commerce (0.26) as the scarcest resources driving spatial differentiation.</li>
+                                        <li><strong>Residual Analysis (Hedonic Regression):</strong> We built a linear regression model (R² ≈0.158) to predict prices based on accessibility. The residuals were calculated to identify "overvalued" (Premium) and "undervalued" (Discount) areas.</li>
+                                    </ul>
+                                    
+                                    <h2>WebGIS Implementation</h2>
+                                    <ul>
+                                        <li><strong>Frontend Framework:</strong> React.js + Tailwind CSS for a responsive, glassmorphism UI.</li>
+                                        <li><strong>Visualization Engine:</strong> Deck.gl was chosen for its high-performance WebGL rendering.</li>
+                                        <li><strong>Data Flow:</strong> Data is pre-processed in Python (Pandas) and embedded as optimized JSON for zero-latency loading.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        );
+                    case 'visualization':
+                        return (
+                            <div className="methodology-section">
+                                <div className="methodology-section-content">
+                                    <h1>Visualization & Interactivity</h1>
+                                    <div className="section-divider"></div>
+                                    <p>Our WebGIS product tells the research story through three layers of interactivity:</p>
+                                    <ul>
+                                        <li><strong>3D Immersion:</strong> Users can tilt and rotate the map to view the "mountains" of housing prices in the CBD versus the "valleys" in the periphery.</li>
+                                        <li><strong>Dynamic Filtering:</strong> Interactive sliders allow users to filter housing blocks by Price Range or Accessibility Score, revealing spatial segregation patterns in real-time.</li>
+                                        <li><strong>Contextual Overlay:</strong> Users can toggle amenity layers (e.g., "Show Schools") to visually verify if high-priced clusters correlate with specific amenities.</li>
+                                        <li><strong>Deep Dive Tooltips:</strong> Hovering over clusters displays aggregated statistics, while clicking reveals specific coordinates and enables ground-truthing.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        );
+                    case 'results':
+                        return (
+                            <div className="methodology-section">
+                                <div className="methodology-section-content">
+                                    <h1>Results & Discussion</h1>
+                                    <div className="section-divider"></div>
+                                    
+                                    <div className="methodology-stat">
+                                        <div className="methodology-stat-item">
+                                            <div className="methodology-stat-value">R≈0.398</div>
+                                            <div className="methodology-stat-label">Correlation</div>
+                                        </div>
+                                        <div className="methodology-stat-item">
+                                            <div className="methodology-stat-value">+60k</div>
+                                            <div className="methodology-stat-label">Luxury Premium</div>
+                                        </div>
+                                        <div className="methodology-stat-item">
+                                            <div className="methodology-stat-value">-40k</div>
+                                            <div className="methodology-stat-label">Institutional Discount</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <h2>The "Location Floor"</h2>
+                                    <p>The regression analysis confirms a moderate positive correlation between accessibility and price. The "Golden Triangle" (Tiyu Xilu - Tianhe Bei - Zhujiang New Town) consistently scores highest in both metrics, validating the polycentric structure of Tianhe.</p>
+                                    
+                                    <h2>The "Two Tails" of Value Capture</h2>
+                                    <ul>
+                                        <li><strong>The "Luxury Premium":</strong> Top outliers like The Pinnacle (Tian Luan) trade at ~60,000 RMB/m² above their locational value. This "Symbolic Capital" is driven by scarcity, exclusivity, and product quality.</li>
+                                        <li><strong>The "Institutional Discount":</strong> Central areas contain deep "value depressions" like 63 Middle School Dorms. Despite perfect accessibility scores, they trade at massive discounts. This reflects the "Danwei Legacy".</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        );
+                    case 'limitations':
+                        return (
+                            <div className="methodology-section">
+                                <div className="methodology-section-content">
+                                    <h1>Limitations & Future Work</h1>
+                                    <div className="section-divider"></div>
+                                    <ul>
+                                        <li><strong>Static Snapshot:</strong> The data represents a cross-section; temporal analysis (price changes over time) is missing.</li>
+                                        <li><strong>Missing Variables:</strong> The model ignores building age, floor area ratio (FAR), and internal attributes (elevator/decoration), which contributes to the unexplained variance (84%).</li>
+                                        <li><strong>Future Work:</strong> Integrate street view imagery analysis (Computer Vision) to quantify "visual quality" and incorporate it into the regression model.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        );
+                    case 'reflection':
+                        return (
+                            <div className="methodology-section">
+                                <div className="methodology-section-content">
+                                    <h1>Reflection</h1>
+                                    <div className="section-divider"></div>
+                                    <p>This project applied the course concepts of <span className="methodology-highlight">Spatial Autocorrelation</span> (clustering of high prices) and <span className="methodology-highlight">MAUP</span> (addressed via Hexagon aggregation).</p>
+                                    <p>By transforming raw CSV data into an interactive 3D WebGIS application, we successfully demonstrated how digital tools can reveal the invisible logic of capital in urban space—showing that while location defines the "floor" of housing value, the "ceiling" is determined by social stratification and urban morphology.</p>
+                                    
+                                    <h2>References & Acknowledgments</h2>
+                                    <ul>
+                                        <li><strong>Data:</strong> Lianjia.com (Housing), OpenStreetMap (POI).</li>
+                                        <li><strong>Libraries:</strong> Deck.gl (Uber), React (Meta), Scikit-learn (Python).</li>
+                                        <li><strong>Course:</strong> HKUST(GZ) UGOD 5104 Urban Informatics.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        );
+                    default:
+                        return null;
+                }
+            };
+            
+            return (
+                <div className={`methodology-page ${isOpen ? 'open' : ''}`}>
+                    <nav className="methodology-nav">
+                        <div className="methodology-logo" onClick={onClose}>
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#4285f4"/>
+                                <path d="M2 17L12 22L22 17" stroke="#34a853" strokeWidth="2"/>
+                                <path d="M2 12L12 17L22 12" stroke="#fbbc04" strokeWidth="2"/>
+                            </svg>
+                            Tianhe Analytics
+                        </div>
+                        <div className="methodology-tabs">
+                            {tabs.map(tab => (
+                                <button 
+                                    key={tab.id}
+                                    className={`methodology-tab ${activeTab === tab.id ? 'active' : ''}`}
+                                    onClick={() => setActiveTab(tab.id)}
+                                >
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
+                        <button className="methodology-close-btn" onClick={onClose}>
+                            Back to Map
+                        </button>
+                    </nav>
+                    <canvas ref={canvasRef} className="methodology-canvas"></canvas>
+                    <div className="methodology-body">
+                        {renderContent()}
+                    </div>
+                </div>
+            );
+        };
+
         // --- 1. Landing Page with Particle Effect ---
         const LandingPage = ({ onStart, loading, count, error }) => {
+            const [showMethodology, setShowMethodology] = useState(false);
             const canvasRef = useRef(null);
             const mouseRef = useRef({ x: 0, y: 0 });
             const particlesRef = useRef([]);
@@ -373,6 +1177,7 @@
             return (
                 <div id="landing-page">
                     <canvas ref={canvasRef} id="particle-canvas"></canvas>
+                    <MethodologyPage isOpen={showMethodology} onClose={() => setShowMethodology(false)} />
                     <div className="landing-content">
                         <div className="tag fade-in-up" style={{animationDelay: '0.1s'}}>
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -401,7 +1206,7 @@
                                         </svg>
                                         {loading ? "Initializing..." : "Start Exploration"}
                                     </button>
-                                    <button className="btn-secondary">
+                                    <button className="btn-secondary" onClick={() => setShowMethodology(true)}>
                                         View Methodology
                                     </button>
                                 </>
@@ -467,7 +1272,7 @@
             const [data, setData] = useState([]);
             const [loading, setLoading] = useState(true);
             const [error, setError] = useState(null);
-            
+
             // State
             const [viewState, setViewState] = useState({ longitude: 113.340, latitude: 23.135, zoom: 12.5, pitch: 0, bearing: 0 });
             const [radius, setRadius] = useState(150);
@@ -476,6 +1281,15 @@
             const [filterAccess, setFilterAccess] = useState([0, 100]);
             const [poiVisible, setPoiVisible] = useState({ subway: true, mall: false, school: false, park: false, public_service: false });
             const [selectedHousing, setSelectedHousing] = useState(null);
+
+            // AI Chatbot State
+            const [chatOpen, setChatOpen] = useState(false);
+            const [messages, setMessages] = useState([
+                { role: 'assistant', content: '你好！我是天河助手 🏠 我可以帮你找到最适合的住房区域。告诉我你的预算和需求吧！' }
+            ]);
+            const [inputValue, setInputValue] = useState('');
+            const [isTyping, setIsTyping] = useState(false);
+            const messagesEndRef = useRef(null);
             
             // Isochrone States
             const [showStaticBuffer, setShowStaticBuffer] = useState(false);
@@ -486,12 +1300,273 @@
             
             // Persona Filter State
             const [selectedPersona, setSelectedPersona] = useState('standard');
-            
+
             // Comparison Mode State
             const [comparisonMode, setComparisonMode] = useState(false);
             const [comparisonA, setComparisonA] = useState(null);
             const [comparisonB, setComparisonB] = useState(null);
-            
+
+            // Auto-scroll chat messages
+            useEffect(() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, [messages]);
+
+            // === MAP CONTROL FUNCTIONS (Called by AI) ===
+            const mapControlFunctions = {
+                updateMapFilter: ({ priceMin, priceMax, accessMin, accessMax }) => {
+                    setFilterPrice([
+                        priceMin !== undefined ? priceMin : filterPrice[0],
+                        priceMax !== undefined ? priceMax : filterPrice[1]
+                    ]);
+                    setFilterAccess([
+                        accessMin !== undefined ? accessMin : filterAccess[0],
+                        accessMax !== undefined ? accessMax : filterAccess[1]
+                    ]);
+                    return `✓ Map filtered: Price ${((priceMin || filterPrice[0])/10000).toFixed(1)}w-${((priceMax || filterPrice[1])/10000).toFixed(1)}w, Access ${accessMin || filterAccess[0]}-${accessMax || filterAccess[1]}`;
+                },
+
+                setPersona: ({ personaType }) => {
+                    setSelectedPersona(personaType);
+                    return `✓ Switched to ${personaType} persona view`;
+                },
+
+                togglePOI: ({ poiType, visible }) => {
+                    setPoiVisible(prev => ({ ...prev, [poiType]: visible }));
+                    return `✓ ${visible ? 'Showing' : 'Hiding'} ${poiType} layer`;
+                },
+
+                flyToArea: ({ areaName, area }) => {
+                    // Support both 'areaName' and 'area' parameter names
+                    const targetArea = areaName || area;
+                    const areas = {
+                        zhujiangxincheng: { longitude: 113.321, latitude: 23.119, zoom: 14 },
+                        '珠江新城': { longitude: 113.321, latitude: 23.119, zoom: 14 },
+                        tiyu_xilu: { longitude: 113.322, latitude: 23.132, zoom: 15 },
+                        '体育西路': { longitude: 113.322, latitude: 23.132, zoom: 15 },
+                        yuancun: { longitude: 113.362, latitude: 23.114, zoom: 14.5 },
+                        '员村': { longitude: 113.362, latitude: 23.114, zoom: 14.5 },
+                        shipaqiao: { longitude: 113.334, latitude: 23.133, zoom: 15 },
+                        '石牌桥': { longitude: 113.334, latitude: 23.133, zoom: 15 },
+                        gangding: { longitude: 113.339, latitude: 23.134, zoom: 15 },
+                        '岗顶': { longitude: 113.339, latitude: 23.134, zoom: 15 },
+                        tianhe_park: { longitude: 113.365, latitude: 23.124, zoom: 14.5 },
+                        '天河公园': { longitude: 113.365, latitude: 23.124, zoom: 14.5 },
+                        guangzhou_east_station: { longitude: 113.326, latitude: 23.149, zoom: 14 },
+                        '广州东站': { longitude: 113.326, latitude: 23.149, zoom: 14 },
+                        overview: { longitude: 113.340, latitude: 23.135, zoom: 12.5 }
+                    };
+                    const target = areas[targetArea];
+                    if (target) {
+                        setViewState(prev => ({ ...prev, ...target, pitch: 30, bearing: 0 }));
+                        return `✓ Flying to ${targetArea}`;
+                    }
+                    return `✗ Area "${targetArea}" not found`;
+                },
+
+                showRecommendations: ({ count = 3 }) => {
+                    // Find top matches based on current filters
+                    const filtered = data.filter(d =>
+                        d.unit_price >= filterPrice[0] && d.unit_price <= filterPrice[1] &&
+                        d.score >= filterAccess[0] && d.score <= filterAccess[1]
+                    );
+                    const sorted = [...filtered].sort((a, b) => b.score - a.score).slice(0, count);
+                    if (sorted.length > 0) {
+                        setSelectedHousing(sorted[0]); // Highlight the best one
+                        return `✓ Found ${sorted.length} recommendations. Highlighted the best match (Score: ${sorted[0].score.toFixed(1)}, Price: ¥${(sorted[0].unit_price/10000).toFixed(1)}w/㎡)`;
+                    }
+                    return `✗ No matches found with current filters`;
+                },
+
+                compareAreas: ({ enable }) => {
+                    setComparisonMode(enable);
+                    if (!enable) {
+                        setComparisonA(null);
+                        setComparisonB(null);
+                    }
+                    return `✓ Comparison mode ${enable ? 'enabled' : 'disabled'}`;
+                }
+            };
+
+            // === AI CONFIGURATION (GitHub Pages Version) ===
+            const AI_CONFIG = {
+                apiKey: 'sk-k4TRuzAh3xPJREVysLh25UggIbiptLi8PaDPP6ij6CGZid7j',
+                apiBase: 'https://api.tu-zi.com/v1',
+                model: 'gpt-5'
+            };
+
+            // System prompt for AI
+            const SYSTEM_PROMPT = `你是"天河助手"，专业的广州天河区住房分析顾问。你可以通过返回JSON命令来控制3D地图。
+
+## 回复格式（必须是纯JSON）:
+{
+  "commands": [...],
+  "message": "你的中文回复（必须是完整的句子，20-50字）"
+}
+
+## 可用命令:
+- updateMapFilter: {"action":"updateMapFilter","priceMin":10000,"priceMax":50000,"accessMin":50,"accessMax":100}
+- setPersona: {"action":"setPersona","personaType":"graduate|family|retiree|standard"}
+- togglePOI: {"action":"togglePOI","poiType":"subway|mall|school|park|public_service","visible":true}
+- flyToArea: {"action":"flyToArea","areaName":"珠江新城|员村|石牌桥|天河公园|龙洞"}
+- compareAreas: {"action":"compareAreas"}
+
+## 价格理解:
+- "3000" 或 "3k" = 30000元/平米
+- "5万" = 50000元/平米
+- "8-10万" = 80000-100000元/平米
+
+## 重要规则:
+1. message字段必须用中文写完整的回复句子，不能只有表情符号
+2. 回复要友好、具体，说明做了什么操作以及推荐的区域
+3. 不要使用markdown代码块
+
+## 示例:
+用户: "我刚毕业，预算3000，要离地铁近"
+回复:
+{"commands":[{"action":"setPersona","personaType":"graduate"},{"action":"updateMapFilter","priceMin":10000,"priceMax":35000,"accessMin":60,"accessMax":100},{"action":"togglePOI","poiType":"subway","visible":true}],"message":"好的！我已为您筛选出3.5万/平米以下、地铁可达性高的区域。推荐您重点关注员村和石牌桥，这两个区域性价比很高，距离地铁站都在步行10分钟以内。"}
+
+用户: "珠江新城附近有什么房源"
+回复:
+{"commands":[{"action":"flyToArea","areaName":"珠江新城"},{"action":"updateMapFilter","priceMin":50000,"priceMax":150000,"accessMin":70,"accessMax":100}],"message":"已定位到珠江新城核心区域。这里是天河最繁华的CBD，房价普遍在5-15万/平米，但交通和配套设施非常完善，适合追求品质生活的家庭。"}`;
+
+            // === AI MESSAGE HANDLING ===
+            const handleSendMessage = async (userMessage) => {
+                if (!userMessage.trim() || isTyping) return;
+
+                // Add user message to chat
+                const newMessages = [...messages, { role: 'user', content: userMessage }];
+                setMessages(newMessages);
+                setInputValue('');
+                setIsTyping(true);
+
+                try {
+                    // Call API directly from browser (GitHub Pages version)
+                    const response = await fetch(`${AI_CONFIG.apiBase}/chat/completions`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${AI_CONFIG.apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: AI_CONFIG.model,
+                            messages: [
+                                { role: 'system', content: SYSTEM_PROMPT },
+                                ...newMessages.map(m => ({ role: m.role, content: m.content }))
+                            ],
+                            temperature: 0.7,
+                            max_tokens: 800
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('API Error:', response.status, errorText);
+                        throw new Error(`API request failed: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    const assistantContent = data.choices[0].message.content;
+
+                    console.log('AI Response:', assistantContent);
+
+                    // Try to parse JSON commands from the response
+                    let parsedResponse;
+                    try {
+                        // Remove markdown code blocks if present
+                        const cleanedContent = assistantContent
+                            .replace(/```json\n?/g, '')
+                            .replace(/```\n?/g, '')
+                            .trim();
+
+                        parsedResponse = JSON.parse(cleanedContent);
+                    } catch (parseError) {
+                        console.warn('Failed to parse JSON, treating as plain text:', parseError);
+                        // If not JSON, treat as regular message
+                        setMessages([
+                            ...newMessages,
+                            { role: 'assistant', content: assistantContent }
+                        ]);
+                        setIsTyping(false);
+                        return;
+                    }
+
+                    // Execute commands if present
+                    const executedActions = [];
+                    if (parsedResponse.commands && Array.isArray(parsedResponse.commands)) {
+                        for (const cmd of parsedResponse.commands) {
+                            const actionName = cmd.action;
+                            const params = cmd;
+
+                            console.log('Executing command:', actionName, params);
+
+                            if (mapControlFunctions[actionName]) {
+                                try {
+                                    const result = mapControlFunctions[actionName](params);
+                                    executedActions.push(actionName);
+                                    console.log('✓', actionName, 'executed:', result);
+                                } catch (error) {
+                                    console.error('Error executing', actionName, ':', error);
+                                }
+                            }
+                        }
+                    }
+
+                    // Generate friendly message if AI response is too short
+                    let displayMessage = parsedResponse.message || '';
+                    
+                    // If message is too short (less than 10 chars or only emojis), generate a friendly fallback
+                    const textOnlyMessage = displayMessage.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+                    if (textOnlyMessage.length < 10) {
+                        // Generate contextual fallback message based on executed actions
+                        const actionDescriptions = {
+                            'updateMapFilter': '已根据您的需求筛选了地图上的房源',
+                            'setPersona': '已切换到适合您的筛选模式',
+                            'togglePOI': '已更新地图上的设施标记',
+                            'flyToArea': '已定位到目标区域',
+                            'compareAreas': '已开启对比模式',
+                            'showRecommendations': '已高亮显示推荐房源'
+                        };
+                        
+                        if (executedActions.length > 0) {
+                            const actionMsgs = executedActions
+                                .map(a => actionDescriptions[a] || a)
+                                .slice(0, 2)
+                                .join('，');
+                            displayMessage = `好的！${actionMsgs}。您可以在地图上查看筛选结果，点击气泡查看详情。`;
+                        } else {
+                            displayMessage = '好的，我已收到您的请求。请查看地图上的变化，或告诉我更具体的需求。';
+                        }
+                    }
+
+                    // Add assistant message
+                    setMessages([
+                        ...newMessages,
+                        {
+                            role: 'assistant',
+                            content: displayMessage,
+                            actions: executedActions.length > 0 ? executedActions : undefined
+                        }
+                    ]);
+
+                } catch (error) {
+                    console.error('Chat error:', error);
+                    setMessages([
+                        ...newMessages,
+                        { role: 'assistant', content: '抱歉，我遇到了一些问题。请稍后再试 🙏' }
+                    ]);
+                }
+
+                setIsTyping(false);
+            };
+
+            // Quick prompt buttons
+            const quickPrompts = [
+                '我刚毕业，预算3000，要离地铁近',
+                '帮我找学区房，预算8-10万',
+                '适合退休的安静区域',
+                '珠江新城附近的房源'
+            ];
+
             // Persona 配置：不同角色对各因素的权重
             const PERSONAS = {
                 standard: {
@@ -1277,6 +2352,126 @@
                                     </div>
                                 )}
                             </div>
+
+                            {/* === AI CHATBOT UI === */}
+                            {view === 'dashboard' && (
+                                <>
+                                    {/* Chat Toggle Button */}
+                                    <button
+                                        className={`ai-chat-toggle ${chatOpen ? 'expanded' : ''}`}
+                                        onClick={() => setChatOpen(!chatOpen)}
+                                        aria-label="Toggle AI Assistant"
+                                    >
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                                            {chatOpen ? (
+                                                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                                            ) : (
+                                                <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+                                            )}
+                                        </svg>
+                                    </button>
+
+                                    {/* Chat Panel */}
+                                    <div className={`ai-chat-panel ${chatOpen ? 'open' : ''}`}>
+                                        {/* Header */}
+                                        <div className="ai-chat-header">
+                                            <div className="ai-avatar">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                                                </svg>
+                                            </div>
+                                            <div className="ai-chat-title">
+                                                <h3>天河助手 Tianhe Assistant</h3>
+                                                <p>AI-powered housing advisor</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Messages */}
+                                        <div className="ai-chat-messages">
+                                            {messages.map((msg, idx) => (
+                                                <div key={idx} className={`chat-message ${msg.role === 'assistant' ? 'ai' : msg.role}`}>
+                                                    <div className="chat-message-avatar">
+                                                        {msg.role === 'ai' || msg.role === 'assistant' ? '🤖' : '👤'}
+                                                    </div>
+                                                    <div>
+                                                        <div className="chat-message-content">
+                                                            {msg.content}
+                                                        </div>
+                                                        {msg.actions && msg.actions.length > 0 && (
+                                                            <div className="chat-message-action">
+                                                                已执行: {msg.actions.map(a => {
+                                                                    const names = {
+                                                                        'updateMapFilter': '筛选房源',
+                                                                        'setPersona': '切换模式',
+                                                                        'togglePOI': '更新标记',
+                                                                        'flyToArea': '定位区域',
+                                                                        'compareAreas': '对比模式'
+                                                                    };
+                                                                    return names[a] || a;
+                                                                }).join(', ')}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {isTyping && (
+                                                <div className="chat-message ai">
+                                                    <div className="chat-message-avatar">🤖</div>
+                                                    <div className="typing-indicator">
+                                                        <div className="typing-dot"></div>
+                                                        <div className="typing-dot"></div>
+                                                        <div className="typing-dot"></div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <div ref={messagesEndRef} />
+                                        </div>
+
+                                        {/* Quick Prompts */}
+                                        {messages.length <= 2 && (
+                                            <div className="quick-prompts">
+                                                {quickPrompts.map((prompt, idx) => (
+                                                    <button
+                                                        key={idx}
+                                                        className="quick-prompt"
+                                                        onClick={() => handleSendMessage(prompt)}
+                                                        disabled={isTyping}
+                                                    >
+                                                        {prompt}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Input Area */}
+                                        <div className="ai-chat-input-area">
+                                            <input
+                                                type="text"
+                                                className="ai-chat-input"
+                                                placeholder="描述你的需求..."
+                                                value={inputValue}
+                                                onChange={(e) => setInputValue(e.target.value)}
+                                                onKeyPress={(e) => {
+                                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                                        e.preventDefault();
+                                                        handleSendMessage(inputValue);
+                                                    }
+                                                }}
+                                                disabled={isTyping}
+                                            />
+                                            <button
+                                                className="ai-chat-send"
+                                                onClick={() => handleSendMessage(inputValue)}
+                                                disabled={isTyping || !inputValue.trim()}
+                                            >
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                                                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </>
                     )}
                 </div>

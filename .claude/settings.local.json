@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node test-api.js:*)",
+      "Bash(node test-gpt5.js:*)",
+      "Bash(node test-full-flow.js:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

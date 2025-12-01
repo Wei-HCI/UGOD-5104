@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test GitHub Pages AI</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
+        .test-section { margin: 30px 0; padding: 20px; border: 2px solid #ddd; border-radius: 8px; }
+        .test-section h3 { margin-top: 0; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; background: #667eea; color: white; border: none; border-radius: 6px; font-size: 14px; }
+        button:hover { background: #5568d3; }
+        .result { margin-top: 15px; padding: 15px; background: #f5f5f5; border-radius: 6px; white-space: pre-wrap; font-family: monospace; font-size: 12px; max-height: 400px; overflow-y: auto; }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        .loading { color: #f59e0b; }
+    </style>
+</head>
+<body>
+    <h1>🧪 GitHub Pages AI 功能测试</h1>
+    <p>这个页面测试 AI 功能是否能在 GitHub Pages 上正常工作（前端直调 API）</p>
+
+    <div class="test-section">
+        <h3>测试 1: API 连接测试</h3>
+        <button onclick="testAPIConnection()">测试 API 连接</button>
+        <div id="test1-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>测试 2: AI 对话测试（中文）</h3>
+        <button onclick="testChineseChat()">测试："我刚毕业，预算3000，要离地铁近"</button>
+        <div id="test2-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>测试 3: AI 对话测试（英文）</h3>
+        <button onclick="testEnglishChat()">测试："Show me affordable housing"</button>
+        <div id="test3-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>测试 4: JSON 指令解析</h3>
+        <button onclick="testJSONParsing()">测试 JSON 解析</button>
+        <div id="test4-result" class="result"></div>
+    </div>
+
+    <script>
+        const AI_CONFIG = {
+            apiKey: 'sk-k4TRuzAh3xPJREVysLh25UggIbiptLi8PaDPP6ij6CGZid7j',
+            apiBase: 'https://api.tu-zi.com/v1',
+            model: 'gpt-5'
+        };
+
+        const SYSTEM_PROMPT = `You are "天河助手", an expert urban planning assistant.
+
+**RESPONSE FORMAT**: Always return pure JSON:
+{
+  "commands": [
+    { "action": "updateMapFilter", "priceMin": 10000, "priceMax": 35000 }
+  ],
+  "message": "Your response"
+}
+
+**RULES**:
+- "3000" = 30,000 CNY/sqm
+- Return pure JSON, no markdown
+- Keep message concise`;
+
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'loading';
+            element.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            element.scrollTop = element.scrollHeight;
+        }
+
+        function clear(elementId) {
+            document.getElementById(elementId).innerHTML = '';
+        }
+
+        async function testAPIConnection() {
+            const resultId = 'test1-result';
+            clear(resultId);
+            log(resultId, '开始测试 API 连接...', 'loading');
+
+            try {
+                const response = await fetch(`${AI_CONFIG.apiBase}/chat/completions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${AI_CONFIG.apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: AI_CONFIG.model,
+                        messages: [{ role: 'user', content: 'Say "API working"' }],
+                        max_tokens: 50
+                    })
+                });
+
+                log(resultId, `响应状态: ${response.status}`, response.ok ? 'success' : 'error');
+
+                if (response.ok) {
+                    const data = await response.json();
+                    log(resultId, `✅ API 连接成功！`, 'success');
+                    log(resultId, `模型: ${data.model}`);
+                    log(resultId, `回复: ${data.choices[0].message.content}`);
+                } else {
+                    const errorText = await response.text();
+                    log(resultId, `❌ API 错误: ${errorText}`, 'error');
+                }
+            } catch (error) {
+                log(resultId, `❌ 请求失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function testChineseChat() {
+            const resultId = 'test2-result';
+            clear(resultId);
+            log(resultId, '测试中文对话...', 'loading');
+
+            try {
+                const response = await fetch(`${AI_CONFIG.apiBase}/chat/completions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${AI_CONFIG.apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: AI_CONFIG.model,
+                        messages: [
+                            { role: 'system', content: SYSTEM_PROMPT },
+                            { role: 'user', content: '我刚毕业，预算3000，要离地铁近' }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 800
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const content = data.choices[0].message.content;
+
+                    log(resultId, '✅ AI 回复成功！', 'success');
+                    log(resultId, '\n原始回复:');
+                    log(resultId, content);
+
+                    // Try to parse JSON
+                    try {
+                        const cleaned = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+                        const parsed = JSON.parse(cleaned);
+                        log(resultId, '\n✅ JSON 解析成功！', 'success');
+                        log(resultId, `指令数量: ${parsed.commands?.length || 0}`);
+                        log(resultId, `消息: ${parsed.message}`);
+                    } catch (e) {
+                        log(resultId, '\n⚠️  JSON 解析失败（AI 可能返回了纯文本）', 'error');
+                    }
+                } else {
+                    log(resultId, `❌ API 错误: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(resultId, `❌ 请求失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function testEnglishChat() {
+            const resultId = 'test3-result';
+            clear(resultId);
+            log(resultId, '测试英文对话...', 'loading');
+
+            try {
+                const response = await fetch(`${AI_CONFIG.apiBase}/chat/completions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${AI_CONFIG.apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: AI_CONFIG.model,
+                        messages: [
+                            { role: 'system', content: SYSTEM_PROMPT },
+                            { role: 'user', content: 'Show me affordable housing near metro' }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 800
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const content = data.choices[0].message.content;
+
+                    log(resultId, '✅ AI 回复成功！', 'success');
+                    log(resultId, '\n原始回复:');
+                    log(resultId, content);
+
+                    try {
+                        const cleaned = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+                        const parsed = JSON.parse(cleaned);
+                        log(resultId, '\n✅ JSON 解析成功！', 'success');
+                        log(resultId, `指令数量: ${parsed.commands?.length || 0}`);
+                    } catch (e) {
+                        log(resultId, '\n⚠️  JSON 解析失败', 'error');
+                    }
+                } else {
+                    log(resultId, `❌ API 错误: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(resultId, `❌ 请求失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function testJSONParsing() {
+            const resultId = 'test4-result';
+            clear(resultId);
+            log(resultId, '测试 JSON 解析逻辑...', 'loading');
+
+            const testCases = [
+                {
+                    name: '标准 JSON',
+                    input: '{"commands": [{"action": "test"}], "message": "hello"}'
+                },
+                {
+                    name: '带 markdown 代码块',
+                    input: '```json\n{"commands": [], "message": "test"}\n```'
+                },
+                {
+                    name: '纯文本（应该失败）',
+                    input: 'This is not JSON'
+                }
+            ];
+
+            testCases.forEach(testCase => {
+                log(resultId, `\n测试: ${testCase.name}`);
+                try {
+                    const cleaned = testCase.input.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+                    const parsed = JSON.parse(cleaned);
+                    log(resultId, `✅ 解析成功: ${JSON.stringify(parsed)}`, 'success');
+                } catch (error) {
+                    log(resultId, `❌ 解析失败: ${error.message}`, 'error');
+                }
+            });
+        }
+
+        // 自动运行第一个测试
+        window.onload = () => {
+            setTimeout(() => {
+                log('test1-result', '页面加载完成，可以开始测试！', 'success');
+            }, 500);
+        };
+    </script>
+</body>
+</html>
