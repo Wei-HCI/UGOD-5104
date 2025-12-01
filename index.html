@@ -3,53 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Price of Convenience: Tianhe Housing Analysis</title>
+    <title>Tianhe 3D Housing Analytics V6.1</title>
     
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.staticfile.org/tailwindcss/3.3.3/tailwind.min.js"></script>
+    <script crossorigin src="https://cdn.staticfile.org/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdn.staticfile.org/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.staticfile.org/babel-standalone/7.22.17/babel.min.js"></script>
     <script src="https://unpkg.com/deck.gl@8.9.33/dist.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     
     <style>
-        body { margin: 0; background: #020617; overflow: hidden; font-family: 'Inter', sans-serif; }
+        /* --- 全局样式 --- */
+        body { margin: 0; background: #ffffff; overflow: hidden; font-family: 'Google Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; color: #202124; -webkit-font-smoothing: antialiased; }
         #map-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 0; }
         
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-
-        /* Glassmorphism Utilities */
+        /* 玻璃拟态 (V6 专业版) */
         .glass-panel {
             background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.25);
         }
 
-        /* Range Slider Styling */
-        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        /* 封面页 - Google Antigravity 风格 */
+        #landing-page {
+            position: fixed; inset: 0; z-index: 9999;
+            background: #ffffff;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; transition: opacity 0.6s ease;
+        }
+        
+        /* 粒子画布 */
+        #particle-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .landing-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            padding: 0 20px;
+        }
+        
+        .title-main {
+            font-size: 4.5rem;
+            font-weight: 400;
+            color: #202124;
+            margin: 0 0 0.5rem 0;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+        
+        .title-sub {
+            font-size: 2.8rem;
+            font-weight: 300;
+            color: #5f6368;
+            margin: 0 0 3rem 0;
+            letter-spacing: -0.01em;
+        }
+        
+        .tag { 
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px; 
+            background: transparent;
+            color: #5f6368;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            letter-spacing: 0;
+        }
+        
+        .tag-icon {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #4285f4 25%, #ea4335 50%, #fbbc04 75%, #34a853 100%);
+            -webkit-background-clip: text;
+            border-radius: 4px;
+        }
+        
+        /* 按钮组 */
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 28px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            background: #1a1a1a;
+            color: #ffffff;
+            border: none;
+            border-radius: 100px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .btn-primary:hover { 
+            background: #000000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .btn-primary:disabled { 
+            background: #e8eaed; 
+            color: #9aa0a6; 
+            box-shadow: none; 
+            cursor: default; 
+        }
+        
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            background: #ffffff;
+            color: #1a1a1a;
+            border: 1px solid #dadce0;
+            border-radius: 100px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background: #f8f9fa;
+            border-color: #1a1a1a;
+        }
+
+        /* 滑块 (V6 样式) */
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; margin: 8px 0; }
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%;
-            background: #f8fafc; cursor: pointer; margin-top: -5px; box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+            background: white; cursor: pointer; margin-top: -5px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
             transition: transform 0.1s;
         }
-        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 4px; cursor: pointer; background: #334155; border-radius: 2px;
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.1); }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: #334155; border-radius: 2px; }
+
+        /* POI 按钮 (V6 样式) */
+        .poi-btn {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 500;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+            color: #94a3b8; cursor: pointer; transition: all 0.2s;
+        }
+        .poi-btn:hover { background: rgba(255,255,255,0.08); color: #cbd5e1; }
+        .poi-btn.active { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: white; }
+        
+        /* 指示形状 - 不同POI使用不同形状和非绿色颜色 */
+        .shape { width: 10px; height: 10px; display: inline-block; }
+        
+        /* Metro: 圆角方形 - 蓝色 */
+        .shape.subway { 
+            background: #38bdf8; 
+            border-radius: 2px;
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.5); 
+        }
+        
+        /* Mall: 菱形 - 粉色 */
+        .shape.mall { 
+            background: #f472b6; 
+            transform: rotate(45deg);
+            box-shadow: 0 0 8px rgba(244, 114, 182, 0.5); 
+        }
+        
+        /* School: 三角形 - 橙色 */
+        .shape.school { 
+            width: 0; height: 0;
+            background: transparent;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 10px solid #fb923c;
+            filter: drop-shadow(0 0 4px rgba(251, 146, 60, 0.5));
+        }
+        
+        /* Park: 六边形 - 紫色 */
+        .shape.park { 
+            background: #c084fc;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            box-shadow: 0 0 8px rgba(192, 132, 252, 0.5); 
+        }
+        
+        /* Public: 五角星 - 红色 */
+        .shape.public_service { 
+            background: #f87171;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            box-shadow: 0 0 8px rgba(248, 113, 113, 0.5); 
         }
 
-        /* Animations */
-        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-        .animate-fade-in { animation: fade-in 0.8s ease-out forwards; }
-        @keyframes slide-up { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .animate-slide-up { animation: slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes slide-right { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .animate-slide-right { animation: slide-right 0.5s ease-out forwards; }
+        .fade-in-up { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; transform: translateY(20px); }
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+
+        /* 辅助文本 */
+        .label-sm { font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+        .value-mono { font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+        
+        .status-text {
+            margin-top: 2.5rem;
+            font-size: 0.85rem;
+            color: #9aa0a6;
+            font-weight: 400;
+        }
     </style>
 </head>
 <body>
@@ -58,305 +229,604 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
-        // --- Icons ---
-        const Icon = ({ name, size = 18, className }) => {
-            const icons = {
-                map: <g><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></g>,
-                info: <g><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></g>,
-                layers: <g><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></g>,
-                filter: <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>,
-                x: <g><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></g>
-            };
-            return (
-                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-                    {icons[name] || icons.info}
-                </svg>
-            );
+        // --- POI Data (Synced) ---
+        const POI_DATA = {
+            'subway': [
+                {'name': '体育西路', 'lat': 23.1319, 'lng': 113.3213}, {'name': '珠江新城', 'lat': 23.1192, 'lng': 113.3212},
+                {'name': '猎德', 'lat': 23.1186, 'lng': 113.3324}, {'name': '广州东站', 'lat': 23.1492, 'lng': 113.3260},
+                {'name': '华师', 'lat': 23.1400, 'lng': 113.3460}, {'name': '岗顶', 'lat': 23.1335, 'lng': 113.3390},
+                {'name': '石牌桥', 'lat': 23.1330, 'lng': 113.3320}, {'name': '员村', 'lat': 23.1140, 'lng': 113.3620},
+                {'name': '科韵路', 'lat': 23.1190, 'lng': 113.3740}, {'name': '车陂南', 'lat': 23.1105, 'lng': 113.3954},
+                {'name': '车陂', 'lat': 23.1230, 'lng': 113.3960}, {'name': '天河公园', 'lat': 23.1240, 'lng': 113.3660},
+                {'name': '燕塘', 'lat': 23.1560, 'lng': 113.3270}, {'name': '天河客运站', 'lat': 23.1713, 'lng': 113.3451},
+                {'name': '龙洞', 'lat': 23.1930, 'lng': 113.3670}, {'name': '天河智慧城', 'lat': 23.1780, 'lng': 113.4060},
+                {'name': '[Buffer] 动物园', 'lat': 23.1330, 'lng': 113.3080}, {'name': '[Buffer] 区庄', 'lat': 23.1330, 'lng': 113.2980},
+                {'name': '[Buffer] 广州塔', 'lat': 23.1060, 'lng': 113.3240}, {'name': '[Buffer] 梅花园', 'lat': 23.1650, 'lng': 113.3150}
+            ],
+            'mall': [
+                {'name': '天河城/正佳', 'lat': 23.1315, 'lng': 113.3276}, {'name': '太古汇', 'lat': 23.1345, 'lng': 113.3330},
+                {'name': '天环/IGC/K11', 'lat': 23.1170, 'lng': 113.3340}, {'name': '东方宝泰', 'lat': 23.1480, 'lng': 113.3260},
+                {'name': '美林M-LIVE', 'lat': 23.1100, 'lng': 113.4180}, {'name': '[Buffer] 友谊商店', 'lat': 23.1380, 'lng': 113.2960},
+                {'name': '[Buffer] 丽影广场', 'lat': 23.0970, 'lng': 113.3210}
+            ],
+            'school': [
+                {'name': '华阳/体育东/华附', 'lat': 23.1410, 'lng': 113.3285}, {'name': '天府路/113中', 'lat': 23.1270, 'lng': 113.3600},
+                {'name': '广州中学', 'lat': 23.1350, 'lng': 113.3300}, {'name': '[Buffer] 执信中学', 'lat': 23.1280, 'lng': 113.2960}
+            ],
+            'park': [
+                {'name': '天河公园', 'lat': 23.1245, 'lng': 113.3650}, {'name': '珠江公园', 'lat': 23.1180, 'lng': 113.3350},
+                {'name': '火炉山/植物园', 'lat': 23.1920, 'lng': 113.3750}, {'name': '[Buffer] 黄花岗公园', 'lat': 23.1360, 'lng': 113.3000},
+                {'name': '[Buffer] 白云山东门', 'lat': 23.1680, 'lng': 113.2980}
+            ],
+            'public_service': [
+                {'name': '中山三院/体育中心', 'lat': 23.1320, 'lng': 113.3400}, {'name': '珠江新城公建群', 'lat': 23.1150, 'lng': 113.3210},
+                {'name': '[Buffer] 中山一院', 'lat': 23.1280, 'lng': 113.2960}, {'name': '[Buffer] 南方医院', 'lat': 23.1860, 'lng': 113.3280}
+            ]
         };
 
-        // --- Optimized DeckGL Map Component ---
-        // 修复核心：使用 useRef 保存实例，只更新 props，不销毁重建
-        const DeckGLMap = React.memo(({ layers, onHover }) => {
-            const deckRef = useRef(null);
-
+        // --- 1. Landing Page with Particle Effect ---
+        const LandingPage = ({ onStart, loading, count, error }) => {
+            const canvasRef = useRef(null);
+            const mouseRef = useRef({ x: 0, y: 0 });
+            const particlesRef = useRef([]);
+            
             useEffect(() => {
-                // Initialize ONLY ONCE
-                const deckInstance = new deck.DeckGL({
-                    container: 'map-container',
-                    initialViewState: {
-                        longitude: 113.340,
-                        latitude: 23.135,
-                        zoom: 12.8,
-                        pitch: 50,
-                        bearing: -10
-                    },
-                    controller: { inertia: true }, // 增加惯性，拖动更平滑
-                    layers: [], // Initial empty layers
-                    getTooltip: ({object}) => object && object.name,
-                    onHover: onHover,
-                    useDevicePixels: false, // 性能优化：视网膜屏不开启超高分渲染，大幅提升FPS
-                });
+                const canvas = canvasRef.current;
+                if (!canvas) return;
                 
-                deckRef.current = deckInstance;
-
-                return () => {
-                    if (deckInstance) deckInstance.finalize();
-                };
-            }, []); // Empty dependency array = Run once on mount
-
-            // Update layers when they change
-            useEffect(() => {
-                if (deckRef.current) {
-                    deckRef.current.setProps({ layers });
+                const ctx = canvas.getContext('2d');
+                let animationId;
+                let width = window.innerWidth;
+                let height = window.innerHeight;
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                // 初始化粒子
+                const particleCount = 120;
+                const particles = [];
+                
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        baseX: Math.random() * width,
+                        baseY: Math.random() * height,
+                        size: Math.random() * 3 + 1,
+                        speedX: (Math.random() - 0.5) * 0.3,
+                        speedY: (Math.random() - 0.5) * 0.3,
+                        opacity: Math.random() * 0.5 + 0.3
+                    });
                 }
-            }, [layers]);
-
-            return <div id="map-container"></div>;
-        });
-
-        // --- Landing Page ---
-        const LandingPage = ({ onStart }) => (
-            <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/95 text-white p-6 text-center animate-fade-in">
-                <div className="max-w-3xl space-y-8">
-                    <div className="inline-block px-4 py-1.5 border border-blue-500/30 rounded-full bg-blue-500/10 text-blue-400 text-xs font-mono tracking-widest uppercase mb-4">
-                        GEOG 5104 Group Project
-                    </div>
-                    <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-red-400 pb-2 animate-slide-up">
-                        The Price of Convenience
-                    </h1>
-                    <p className="text-xl text-slate-400 font-light leading-relaxed animate-slide-up" style={{animationDelay: '0.1s'}}>
-                        Spatial Correlation Analysis between <span className="text-white font-normal">Public Service Accessibility</span> and <span className="text-white font-normal">Housing Prices</span> in Tianhe District.
-                    </p>
-                    <button 
-                        onClick={onStart}
-                        className="group relative px-10 py-4 bg-white text-slate-900 font-bold rounded-full hover:scale-105 transition-all shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] animate-slide-up"
-                        style={{animationDelay: '0.3s'}}
-                    >
-                        Start Exploration
-                    </button>
-                    <div className="absolute bottom-8 left-0 right-0 text-xs text-slate-600 font-mono animate-fade-in" style={{animationDelay: '0.5s'}}>
-                        Team Members: Ken & Partner
-                    </div>
-                </div>
-            </div>
-        );
-
-        // --- Report Modal ---
-        const ReportModal = ({ isOpen, onClose }) => {
-            if (!isOpen) return null;
+                particlesRef.current = particles;
+                
+                const handleMouseMove = (e) => {
+                    mouseRef.current = { x: e.clientX, y: e.clientY };
+                };
+                
+                const handleResize = () => {
+                    width = window.innerWidth;
+                    height = window.innerHeight;
+                    canvas.width = width;
+                    canvas.height = height;
+                };
+                
+                window.addEventListener('mousemove', handleMouseMove);
+                window.addEventListener('resize', handleResize);
+                
+                const animate = () => {
+                    ctx.clearRect(0, 0, width, height);
+                    
+                    const mouse = mouseRef.current;
+                    const interactionRadius = 150;
+                    
+                    particles.forEach(p => {
+                        // 计算与鼠标的距离
+                        const dx = mouse.x - p.x;
+                        const dy = mouse.y - p.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        // 波动效果：当鼠标靠近时，粒子被推开
+                        if (distance < interactionRadius) {
+                            const force = (interactionRadius - distance) / interactionRadius;
+                            const angle = Math.atan2(dy, dx);
+                            p.x -= Math.cos(angle) * force * 8;
+                            p.y -= Math.sin(angle) * force * 8;
+                        } else {
+                            // 缓慢回归原位
+                            p.x += (p.baseX - p.x) * 0.02;
+                            p.y += (p.baseY - p.y) * 0.02;
+                        }
+                        
+                        // 基础漂移
+                        p.baseX += p.speedX;
+                        p.baseY += p.speedY;
+                        
+                        // 边界处理
+                        if (p.baseX < 0 || p.baseX > width) p.speedX *= -1;
+                        if (p.baseY < 0 || p.baseY > height) p.speedY *= -1;
+                        
+                        // 绘制粒子
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(66, 133, 244, ${p.opacity})`;
+                        ctx.fill();
+                    });
+                    
+                    animationId = requestAnimationFrame(animate);
+                };
+                
+                animate();
+                
+                return () => {
+                    window.removeEventListener('mousemove', handleMouseMove);
+                    window.removeEventListener('resize', handleResize);
+                    cancelAnimationFrame(animationId);
+                };
+            }, []);
+            
             return (
-                <div className="absolute inset-0 z-50 flex justify-center bg-slate-900/80 backdrop-blur-sm overflow-y-auto py-10 animate-fade-in">
-                    <div className="w-full max-w-4xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-8 md:p-12 h-fit relative animate-slide-up">
-                        <button onClick={onClose} className="absolute top-6 right-6 p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors">
-                            <Icon name="x" size={24} />
-                        </button>
-                        <div className="prose prose-invert max-w-none">
-                            <h2 className="text-3xl font-bold text-white mb-2">Project Report</h2>
-                            <p className="text-slate-400 mb-8 border-b border-slate-800 pb-6">
-                                A comprehensive analysis of spatial equity and capital intensity in Guangzhou's CBD.
-                            </p>
-                            <div className="grid md:grid-cols-3 gap-8">
-                                <div className="md:col-span-2 space-y-8 text-sm text-slate-300">
-                                    <section>
-                                        <h3 className="text-lg font-semibold text-blue-400 mb-2">1. Background</h3>
-                                        <p>In Tianhe District, a hyper-dense urban core, we investigate whether convenience is equitably distributed.</p>
-                                    </section>
-                                    <section>
-                                        <h3 className="text-lg font-semibold text-purple-400 mb-2">2. Methodology</h3>
-                                        <ul className="list-disc list-inside space-y-1">
-                                            <li>Data: Lianjia Housing Data & OSM POIs.</li>
-                                            <li>Analysis: Weighted Accessibility Index (0-100).</li>
-                                            <li>Viz: Hexagon Aggregation (Price vs Access).</li>
-                                        </ul>
-                                    </section>
-                                    <section>
-                                        <h3 className="text-lg font-semibold text-red-400 mb-2">3. Findings</h3>
-                                        <p>Strong correlation in CBD, but distinct "Value Depressions" found in northern areas (Longdong).</p>
-                                    </section>
+                <div id="landing-page">
+                    <canvas ref={canvasRef} id="particle-canvas"></canvas>
+                    <div className="landing-content">
+                        <div className="tag fade-in-up" style={{animationDelay: '0.1s'}}>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#4285f4"/>
+                                <path d="M2 17L12 22L22 17" stroke="#34a853" strokeWidth="2"/>
+                                <path d="M2 12L12 17L22 12" stroke="#fbbc04" strokeWidth="2"/>
+                            </svg>
+                            Tianhe Analytics
+                        </div>
+                        <h1 className="title-main fade-in-up" style={{animationDelay: '0.2s'}}>
+                            The Price of Convenience
+                        </h1>
+                        <p className="title-sub fade-in-up" style={{animationDelay: '0.3s'}}>
+                            Spatial Housing Analytics in CBD
+                        </p>
+                        <div className="btn-group fade-in-up" style={{animationDelay: '0.4s'}}>
+                            {error ? (
+                                <div style={{background:'#fce8e6', border:'1px solid #f5c6cb', padding:'16px 24px', borderRadius:'8px', color:'#c5221f'}}>
+                                    Error: {error}
                                 </div>
-                                <div className="bg-slate-800/50 p-6 rounded-xl h-fit border border-slate-700/50 text-sm">
-                                    <h4 className="font-bold text-white mb-4 uppercase text-xs tracking-widest">Tech Stack</h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {['React', 'Deck.gl', 'Tailwind', 'Python'].map(tag => (
-                                            <span key={tag} className="px-2 py-1 bg-slate-700 text-slate-300 text-xs rounded">{tag}</span>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
+                            ) : (
+                                <>
+                                    <button className="btn-primary" onClick={onStart} disabled={loading || count === 0}>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M8 5v14l11-7z"/>
+                                        </svg>
+                                        {loading ? "Initializing..." : "Start Exploration"}
+                                    </button>
+                                    <button className="btn-secondary">
+                                        View Methodology
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                        <div className="status-text fade-in-up" style={{animationDelay: '0.5s'}}>
+                            {loading ? "Processing spatial data..." : `${count} housing blocks ready for analysis`}
                         </div>
                     </div>
                 </div>
             );
         };
 
-        // --- Main App ---
+        // --- 2. Map Component ---
+        const DeckGLMap = React.memo(({ layers, viewState, onViewStateChange }) => {
+            const deckRef = useRef(null);
+            useEffect(() => {
+                const deckInstance = new deck.DeckGL({
+                    container: 'map-container',
+                    initialViewState: viewState,
+                    controller: true,
+                    layers: layers,
+                    getTooltip: ({object}) => {
+                        if (!object) return null;
+                        
+                        // POI
+                        if (object.name) {
+                            return {
+                                html: `<div style="font-weight:600; color:${object.colorHex}; font-size:13px">${object.name}</div>`,
+                                style: { backgroundColor: 'rgba(15, 23, 42, 0.95)', border: `1px solid ${object.colorHex}40`, borderRadius: '6px', color: 'white', padding:'6px 10px' }
+                            };
+                        }
+
+                        // Bubble (单个小区数据)
+                        const price = object.unit_price;
+                        const score = object.score;
+                        return {
+                            html: `
+                                <div style="font-family:'Inter';font-size:13px;line-height:1.6;min-width:160px">
+                                    <div style="font-weight:600;color:#e2e8f0;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:6px;margin-bottom:8px">Housing Block</div>
+                                    <div style="display:flex;justify-content:space-between;color:#94a3b8;margin-bottom:4px"><span>Unit Price</span><span style="color:#facc15" class="value-mono">¥${Math.round(price).toLocaleString()}/㎡</span></div>
+                                    <div style="display:flex;justify-content:space-between;color:#94a3b8"><span>Access Score</span><span style="color:#60a5fa" class="value-mono">${score.toFixed(1)}</span></div>
+                                </div>
+                            `,
+                            style: { backgroundColor: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', boxShadow: '0 12px 30px rgba(0,0,0,0.3)', padding:'12px' }
+                        };
+                    },
+                    onViewStateChange: onViewStateChange
+                });
+                deckRef.current = deckInstance;
+                return () => { if (deckInstance) deckInstance.finalize(); };
+            }, []);
+            useEffect(() => { if (deckRef.current) deckRef.current.setProps({ layers, viewState }); }, [layers, viewState]);
+            return <div id="map-container"></div>;
+        });
+
+        // --- 3. App ---
         function App() {
             const [view, setView] = useState('landing');
-            const [showReport, setShowReport] = useState(false);
-            const [sidebarOpen, setSidebarOpen] = useState(true);
-            
             const [data, setData] = useState([]);
-            const [hoverInfo, setHoverInfo] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
             
-            // 优化核心：分离UI状态（滑块显示）和数据状态（地图计算）
-            const [uiPrice, setUiPrice] = useState([10000, 150000]);
+            // State
+            const [viewState, setViewState] = useState({ longitude: 113.340, latitude: 23.135, zoom: 12.5, pitch: 0, bearing: 0 });
+            const [radius, setRadius] = useState(150);
+            const [elevationScale, setElevationScale] = useState(12);
             const [filterPrice, setFilterPrice] = useState([10000, 150000]);
-            
-            const [uiAccess, setUiAccess] = useState([0, 100]);
             const [filterAccess, setFilterAccess] = useState([0, 100]);
-            
-            const [uiRadius, setUiRadius] = useState(150);
-            const [filterRadius, setFilterRadius] = useState(150);
+            const [poiVisible, setPoiVisible] = useState({ subway: true, mall: false, school: false, park: false, public_service: false });
+            const [selectedHousing, setSelectedHousing] = useState(null);
 
             // Load Data
             useEffect(() => {
-                Papa.parse('final_data_tianhe.csv', {
-                    download: true, header: true, dynamicTyping: true,
+                Papa.parse('final_academic_tianhe_blocks.csv', {
+                    download: true, header: true, dynamicTyping: true, skipEmptyLines: true,
                     complete: (results) => {
-                        if (results.data && results.data.length > 0) {
-                            const validData = results.data.filter(d => d.Lat && d.Lng && d.unit_price);
-                            setData(validData);
-                        }
-                    }
+                        try {
+                            const validData = results.data.map(d => ({
+                                Lat: parseFloat(d.Lat), Lng: parseFloat(d.Lng),
+                                unit_price: parseFloat(d.unit_price),
+                                score: parseFloat(d.Accessibility_Index || d.accessibility_index)
+                            })).filter(d => !isNaN(d.Lat) && !isNaN(d.Lng) && !isNaN(d.unit_price) && !isNaN(d.score));
+                            
+                            if (validData.length === 0) setError("Data load failed (0 rows).");
+                            else setData(validData);
+                        } catch (e) { setError(e.message); }
+                        setLoading(false);
+                    },
+                    error: (err) => { console.error(err); setError("CSV File Not Found"); setLoading(false); }
                 });
             }, []);
 
-            // Memoize filtered data based on COMMITTED filter values (not UI values)
             const filteredData = useMemo(() => {
                 return data.filter(d => 
-                    d.unit_price >= filterPrice[0] && 
-                    d.unit_price <= filterPrice[1] &&
-                    d.accessibility_index >= filterAccess[0] &&
-                    d.accessibility_index <= filterAccess[1]
+                    d.unit_price >= filterPrice[0] && d.unit_price <= filterPrice[1] &&
+                    d.score >= filterAccess[0] && d.score <= filterAccess[1]
                 );
             }, [data, filterPrice, filterAccess]);
 
-            // Memoize layers
+            // Layers
             const layers = useMemo(() => {
-                return [
+                // 计算房价范围用于气泡大小映射
+                const priceMin = Math.min(...filteredData.map(d => d.unit_price));
+                const priceMax = Math.max(...filteredData.map(d => d.unit_price));
+                
+                // 根据可达性分数获取颜色
+                const getColorByScore = (score) => {
+                    const t = Math.min(1, Math.max(0, score / 95));
+                    const colors = [
+                        [94, 84, 142], [72, 118, 176], [59, 160, 168], [74, 189, 172], [129, 212, 175], [190, 237, 199]
+                    ];
+                    const idx = t * (colors.length - 1);
+                    const i = Math.floor(idx);
+                    const f = idx - i;
+                    if (i >= colors.length - 1) return [...colors[colors.length - 1], 200];
+                    return [
+                        Math.round(colors[i][0] + (colors[i+1][0] - colors[i][0]) * f),
+                        Math.round(colors[i][1] + (colors[i+1][1] - colors[i][1]) * f),
+                        Math.round(colors[i][2] + (colors[i+1][2] - colors[i][2]) * f),
+                        200
+                    ];
+                };
+                
+                const layerList = [
                     new deck.TileLayer({
                         id: 'basemap',
-                        data: 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                        data: 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
                         minZoom: 0, maxZoom: 19, tileSize: 256,
                         renderSubLayers: props => {
                             const {bbox: {west, south, east, north}} = props.tile;
-                            return new deck.BitmapLayer(props, {
-                                data: null, image: props.data, bounds: [west, south, east, north]
-                            });
+                            return new deck.BitmapLayer(props, { data: null, image: props.data, bounds: [west, south, east, north] });
                         }
                     }),
-                    new deck.HexagonLayer({
-                        id: 'heatmap',
+                    new deck.ScatterplotLayer({
+                        id: 'bubble-map',
                         data: filteredData,
-                        pickable: true,
-                        extruded: true,
-                        radius: filterRadius, 
-                        elevationScale: 6,
                         getPosition: d => [d.Lng, d.Lat],
-                        getElevationValue: points => points.reduce((sum, p) => sum + p.unit_price, 0) / points.length,
-                        getColorValue: points => points.reduce((sum, p) => sum + p.accessibility_index, 0) / points.length,
-                        colorDomain: [0, 80], 
-                        colorRange: [
-                            [44, 123, 182], [171, 217, 233], [255, 255, 191], [253, 174, 97], [215, 25, 28]
-                        ],
-                        transitions: {
-                            elevationScale: 600, // Smooth transition
-                            getColorValue: { duration: 300 }
-                        }
+                        // 气泡大小 = 房价（归一化后映射到半径）
+                        getRadius: d => {
+                            const normalized = (d.unit_price - priceMin) / (priceMax - priceMin + 1);
+                            return 80 + normalized * 400; // 80-480米
+                        },
+                        // 气泡颜色：选中的显示真实颜色，其他半透明灰色
+                        getFillColor: d => {
+                            // 如果是选中的房屋，显示真实颜色
+                            if (selectedHousing && d.Lat === selectedHousing.Lat && d.Lng === selectedHousing.Lng) {
+                                const score = d.score;
+                                const t = Math.min(1, Math.max(0, score / 95));
+                                const colors = [
+                                    [94, 84, 142], [72, 118, 176], [59, 160, 168], [74, 189, 172], [129, 212, 175], [190, 237, 199]
+                                ];
+                                const idx = t * (colors.length - 1);
+                                const i = Math.floor(idx);
+                                const f = idx - i;
+                                if (i >= colors.length - 1) return [...colors[colors.length - 1], 230];
+                                return [
+                                    Math.round(colors[i][0] + (colors[i+1][0] - colors[i][0]) * f),
+                                    Math.round(colors[i][1] + (colors[i+1][1] - colors[i][1]) * f),
+                                    Math.round(colors[i][2] + (colors[i+1][2] - colors[i][2]) * f),
+                                    230
+                                ];
+                            }
+                            return [120, 120, 130, 100];
+                        },
+                        getLineColor: d => {
+                            if (selectedHousing && d.Lat === selectedHousing.Lat && d.Lng === selectedHousing.Lng) {
+                                return [255, 255, 255, 200];
+                            }
+                            return [80, 80, 80, 60];
+                        },
+                        stroked: true,
+                        lineWidthMinPixels: d => {
+                            if (selectedHousing && d.Lat === selectedHousing.Lat && d.Lng === selectedHousing.Lng) {
+                                return 2;
+                            }
+                            return 1;
+                        },
+                        radiusMinPixels: 4,
+                        radiusMaxPixels: 40,
+                        pickable: true,
+                        opacity: 0.8,
+                        autoHighlight: true,
+                        highlightColor: d => {
+                            // hover时显示真实颜色
+                            const score = d.object ? d.object.score : 50;
+                            const t = Math.min(1, Math.max(0, score / 95));
+                            const colors = [
+                                [94, 84, 142], [72, 118, 176], [59, 160, 168], [74, 189, 172], [129, 212, 175], [190, 237, 199]
+                            ];
+                            const idx = t * (colors.length - 1);
+                            const i = Math.floor(idx);
+                            const f = idx - i;
+                            if (i >= colors.length - 1) return [...colors[colors.length - 1], 220];
+                            return [
+                                Math.round(colors[i][0] + (colors[i+1][0] - colors[i][0]) * f),
+                                Math.round(colors[i][1] + (colors[i+1][1] - colors[i][1]) * f),
+                                Math.round(colors[i][2] + (colors[i+1][2] - colors[i][2]) * f),
+                                220
+                            ];
+                        },
+                        onClick: (info) => {
+                            if (info.object) {
+                                setSelectedHousing(info.object);
+                            }
+                        },
+                        updateTriggers: {
+                            getFillColor: selectedHousing,
+                            getLineColor: selectedHousing
+                        },
+                        transitions: { getRadius: 300, getFillColor: 300 }
                     })
                 ];
-            }, [filteredData, filterRadius]); // Only recreate layers when filtered data or radius changes
 
-            // Optimized Hover Handler
-            const onHover = useCallback(({object, x, y}) => {
-                setHoverInfo(object ? {x, y, price: object.elevationValue, score: object.colorValue, count: object.points.length} : null);
-            }, []);
+                // POI Config - 非绿色配色方案
+                const poiConfig = {
+                    subway: { color: [56, 189, 248], hex: '#38bdf8', shape: 'square' },
+                    mall:   { color: [244, 114, 182], hex: '#f472b6', shape: 'diamond' },
+                    school: { color: [251, 146, 60], hex: '#fb923c', shape: 'triangle' },
+                    park:   { color: [192, 132, 252],  hex: '#c084fc', shape: 'hexagon' },
+                    public_service: { color: [248, 113, 113], hex: '#f87171', shape: 'star' }
+                };
+                
+                // 创建SVG图标的函数
+                const createIcon = (shape, color) => {
+                    const size = 32;
+                    const hexColor = color;
+                    let path;
+                    switch(shape) {
+                        case 'square':
+                            path = `<rect x="4" y="4" width="24" height="24" rx="3" fill="${hexColor}" stroke="white" stroke-width="2"/>`;
+                            break;
+                        case 'diamond':
+                            path = `<polygon points="16,2 30,16 16,30 2,16" fill="${hexColor}" stroke="white" stroke-width="2"/>`;
+                            break;
+                        case 'triangle':
+                            path = `<polygon points="16,3 29,28 3,28" fill="${hexColor}" stroke="white" stroke-width="2"/>`;
+                            break;
+                        case 'hexagon':
+                            path = `<polygon points="16,2 28,9 28,23 16,30 4,23 4,9" fill="${hexColor}" stroke="white" stroke-width="2"/>`;
+                            break;
+                        case 'star':
+                            path = `<polygon points="16,2 19,12 30,12 21,18 24,28 16,22 8,28 11,18 2,12 13,12" fill="${hexColor}" stroke="white" stroke-width="1.5"/>`;
+                            break;
+                        default:
+                            path = `<circle cx="16" cy="16" r="12" fill="${hexColor}" stroke="white" stroke-width="2"/>`;
+                    }
+                    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${path}</svg>`)}`;
+                };
+
+                Object.keys(poiVisible).forEach(key => {
+                    if (poiVisible[key] && POI_DATA[key]) {
+                        const config = poiConfig[key];
+                        layerList.push(
+                            new deck.IconLayer({
+                                id: `poi-${key}`,
+                                data: POI_DATA[key],
+                                getPosition: d => [d.lng, d.lat],
+                                getIcon: d => ({
+                                    url: createIcon(config.shape, config.hex),
+                                    width: 32,
+                                    height: 32,
+                                    anchorY: 16
+                                }),
+                                getSize: 28,
+                                sizeScale: 1,
+                                pickable: true,
+                                onHover: (info) => { if(info.object) info.object.colorHex = config.hex; }
+                            })
+                        );
+                    }
+                });
+                return layerList;
+            }, [filteredData, radius, elevationScale, poiVisible, selectedHousing]);
+
+            // POI Button
+            const PoiToggle = ({ id, label }) => (
+                <button 
+                    className={`poi-btn ${id} ${poiVisible[id] ? 'active' : ''}`}
+                    onClick={() => setPoiVisible(prev => ({...prev, [id]: !prev[id]}))}
+                >
+                    {poiVisible[id] && <div className={`shape ${id}`}></div>}
+                    {label}
+                </button>
+            );
 
             return (
-                <div className="relative w-full h-screen bg-slate-950 text-slate-100">
-                    <DeckGLMap layers={layers} onHover={onHover} />
+                <div style={{position: 'relative', width: '100%', height: '100vh'}}>
+                    <DeckGLMap layers={layers} viewState={viewState} onViewStateChange={({viewState}) => setViewState(viewState)} />
 
-                    {view === 'landing' && <LandingPage onStart={() => setView('dashboard')} />}
+                    {view === 'landing' && <LandingPage onStart={() => setView('dashboard')} loading={loading} count={data.length} error={error} />}
 
                     {view === 'dashboard' && (
                         <>
-                            <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-start z-10 pointer-events-none">
-                                <div className="pointer-events-auto animate-slide-up" style={{animationDelay: '0.1s'}}>
-                                    <h2 className="text-2xl font-bold text-white drop-shadow-md font-mono">Tianhe Housing <span className="text-blue-400">Explorer</span></h2>
-                                    <div className="flex gap-2 mt-2">
-                                        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/90 text-xs font-medium text-white rounded-lg hover:bg-slate-700 transition shadow-lg border border-slate-600">
-                                            <Icon name="filter" size={14}/> {sidebarOpen ? 'Hide Controls' : 'Show Controls'}
-                                        </button>
-                                        <button onClick={() => setShowReport(true)} className="flex items-center gap-2 px-3 py-1.5 bg-blue-600/90 text-xs font-medium text-white rounded-lg hover:bg-blue-500 transition shadow-lg border border-blue-500">
-                                            <Icon name="info" size={14}/> Report
-                                        </button>
+                            <div className="header-bar fade-in-up">
+                                <h1 className="text-2xl font-bold text-white drop-shadow-sm" style={{margin:0, padding:'24px', letterSpacing:'-0.02em'}}>
+                                    Tianhe <span style={{color:'#a78bfa'}}>Analytics</span>
+                                </h1>
+                            </div>
+
+                            <div className="glass-panel control-panel fade-in-up" style={{position:'absolute', top: '90px', left: '24px', width: '320px', padding: '24px', zIndex: 10}}>
+                                <div className="space-y-7">
+                                    <div>
+                                        <div className="label-sm mb-3">Amenities Layers</div>
+                                        <div className="flex flex-wrap gap-2">
+                                            <PoiToggle id="subway" label="Metro" />
+                                            <PoiToggle id="mall" label="Mall" />
+                                            <PoiToggle id="school" label="School" />
+                                            <PoiToggle id="park" label="Park" />
+                                            <PoiToggle id="public_service" label="Public" />
+                                        </div>
+                                    </div>
+                                    <hr style={{borderColor:'rgba(255,255,255,0.08)'}}/>
+                                    <div>
+                                        <div className="flex justify-between mb-2 label-sm">
+                                            <span>Price Filter</span>
+                                            <span className="text-yellow-400 value-mono">{(filterPrice[0]/10000).toFixed(0)}-{(filterPrice[1]/10000).toFixed(0)}w</span>
+                                        </div>
+                                        <input type="range" min="10000" max="200000" step="5000" value={filterPrice[0]} 
+                                            onChange={e=>setFilterPrice([Math.min(Number(e.target.value), filterPrice[1]), filterPrice[1]])}/>
+                                        <input type="range" min="10000" max="200000" step="5000" value={filterPrice[1]} 
+                                            onChange={e=>setFilterPrice([filterPrice[0], Math.max(Number(e.target.value), filterPrice[0])])}/>
+                                    </div>
+                                    <div>
+                                        <div className="flex justify-between mb-2 label-sm">
+                                            <span>Access Score</span>
+                                            <span className="text-blue-400 value-mono">{filterAccess[0]}-{filterAccess[1]}</span>
+                                        </div>
+                                        <input type="range" min="0" max="100" value={filterAccess[0]} onChange={e=>setFilterAccess([Math.min(Number(e.target.value), filterAccess[1]), filterAccess[1]])}/>
+                                        <input type="range" min="0" max="100" value={filterAccess[1]} onChange={e=>setFilterAccess([filterAccess[0], Math.max(Number(e.target.value), filterAccess[0])])}/>
                                     </div>
                                 </div>
                             </div>
 
-                            {sidebarOpen && (
-                                <div className="absolute top-28 left-4 w-72 glass-panel p-5 rounded-xl shadow-2xl z-10 animate-slide-right text-slate-100 max-h-[75vh] overflow-y-auto custom-scrollbar">
-                                    <div className="space-y-6">
-                                        {/* Price Filter - 核心优化：onChange只更UI，onMouseUp触发计算 */}
-                                        <div>
-                                            <div className="flex justify-between mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Price Range (¥/m²)</div>
-                                            <div className="flex items-end justify-between mb-2 text-sm font-mono text-yellow-400">
-                                                <span>{(uiPrice[0]/10000).toFixed(1)}w</span>
-                                                <span>{(uiPrice[1]/10000).toFixed(1)}w</span>
+                            {/* Housing Detail Card */}
+                            {selectedHousing && (
+                                <div className="glass-panel fade-in-up" style={{position:'absolute', bottom:'24px', left:'24px', padding:'0', zIndex:10, width:'320px', overflow:'hidden'}}>
+                                    {/* Close Button */}
+                                    <button 
+                                        onClick={() => setSelectedHousing(null)}
+                                        style={{position:'absolute', top:'12px', right:'12px', background:'rgba(0,0,0,0.5)', border:'none', borderRadius:'50%', width:'28px', height:'28px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1}}
+                                    >
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                                            <path d="M18 6L6 18M6 6l12 12"/>
+                                        </svg>
+                                    </button>
+                                    
+                                    {/* Housing Image - Random from 4 images */}
+                                    <div style={{width:'100%', height:'160px', background:'#f8fafc', display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden'}}>
+                                        <img 
+                                            src={`house${((Math.floor(selectedHousing.Lat * 10000) + Math.floor(selectedHousing.Lng * 10000)) % 4) + 1}.png`}
+                                            alt="Housing"
+                                            style={{width:'100%', height:'100%', objectFit:'contain', background:'#fff'}}
+                                            onError={(e) => {
+                                                e.target.style.display = 'none';
+                                                e.target.nextSibling.style.display = 'flex';
+                                            }}
+                                        />
+                                        <div style={{display:'none', textAlign:'center', color:'#64748b', position:'absolute', flexDirection:'column', alignItems:'center'}}>
+                                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{marginBottom:'8px'}}>
+                                                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                                <path d="M21 15l-5-5L5 21"/>
+                                            </svg>
+                                            <div style={{fontSize:'11px'}}>Housing Image</div>
+                                        </div>
+                                        {/* Price Badge */}
+                                        <div style={{position:'absolute', bottom:'12px', left:'12px', background:'rgba(250, 204, 21, 0.95)', color:'#000', padding:'6px 12px', borderRadius:'6px', fontSize:'14px', fontWeight:'600', boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
+                                            ¥{Math.round(selectedHousing.unit_price).toLocaleString()}/㎡
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Content */}
+                                    <div style={{padding:'16px'}}>
+                                        <div style={{fontSize:'15px', fontWeight:'600', color:'#e2e8f0', marginBottom:'12px'}}>Housing Block Details</div>
+                                        
+                                        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', marginBottom:'12px'}}>
+                                            <div style={{background:'rgba(255,255,255,0.05)', padding:'10px', borderRadius:'8px'}}>
+                                                <div style={{fontSize:'10px', color:'#64748b', marginBottom:'4px'}}>UNIT PRICE</div>
+                                                <div style={{fontSize:'14px', color:'#facc15', fontFamily:'JetBrains Mono'}}>
+                                                    ¥{Math.round(selectedHousing.unit_price).toLocaleString()}
+                                                </div>
                                             </div>
-                                            <input type="range" min="10000" max="80000" step="1000" value={uiPrice[0]} 
-                                                onChange={e=>setUiPrice([Math.min(+e.target.value, uiPrice[1]), uiPrice[1]])}
-                                                onMouseUp={()=>setFilterPrice(uiPrice)} // Commit on release
-                                                onTouchEnd={()=>setFilterPrice(uiPrice)}
-                                                className="mb-2"/>
-                                            <input type="range" min="80000" max="200000" step="1000" value={uiPrice[1]} 
-                                                onChange={e=>setUiPrice([uiPrice[0], Math.max(+e.target.value, uiPrice[0])])}
-                                                onMouseUp={()=>setFilterPrice(uiPrice)} // Commit on release
-                                                onTouchEnd={()=>setFilterPrice(uiPrice)}/>
-                                        </div>
-
-                                        {/* Access Filter */}
-                                        <div>
-                                            <div className="flex justify-between mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Accessibility Score</div>
-                                            <div className="flex items-center justify-between mb-2"><span className="text-sm font-mono text-blue-400">&ge; {uiAccess[0]}</span></div>
-                                            <input type="range" min="0" max="100" value={uiAccess[0]} 
-                                                onChange={e=>setUiAccess([+e.target.value, 100])} 
-                                                onMouseUp={()=>setFilterAccess(uiAccess)} // Commit on release
-                                                onTouchEnd={()=>setFilterAccess(uiAccess)}
-                                                className="accent-blue-500"/>
-                                        </div>
-
-                                        {/* Radius Filter */}
-                                        <div>
-                                            <div className="flex justify-between mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Hex Radius</div>
-                                            <div className="flex items-center justify-between mb-2"><span className="text-sm font-mono text-purple-400">{uiRadius} meters</span></div>
-                                            <input type="range" min="50" max="500" step="10" value={uiRadius} 
-                                                onChange={e=>setUiRadius(+e.target.value)} 
-                                                onMouseUp={()=>setFilterRadius(uiRadius)} // Commit on release
-                                                onTouchEnd={()=>setFilterRadius(uiRadius)}
-                                                className="accent-purple-500"/>
+                                            <div style={{background:'rgba(255,255,255,0.05)', padding:'10px', borderRadius:'8px'}}>
+                                                <div style={{fontSize:'10px', color:'#64748b', marginBottom:'4px'}}>ACCESS SCORE</div>
+                                                <div style={{fontSize:'14px', color:'#60a5fa', fontFamily:'JetBrains Mono'}}>
+                                                    {selectedHousing.score.toFixed(1)}
+                                                </div>
+                                            </div>
                                         </div>
                                         
-                                        <div className="pt-4 border-t border-slate-700/50 text-xs text-slate-500 italic">
-                                            * Tip: Release slider to update map
+                                        <div style={{background:'rgba(255,255,255,0.05)', padding:'10px', borderRadius:'8px', marginBottom:'12px'}}>
+                                            <div style={{fontSize:'10px', color:'#64748b', marginBottom:'4px'}}>LOCATION</div>
+                                            <div style={{fontSize:'12px', color:'#94a3b8', fontFamily:'JetBrains Mono'}}>
+                                                {selectedHousing.Lat.toFixed(4)}°N, {selectedHousing.Lng.toFixed(4)}°E
+                                            </div>
+                                        </div>
+                                        
+                                        <div style={{fontSize:'11px', color:'#64748b', lineHeight:'1.6'}}>
+                                            This housing block is located in Tianhe District, Guangzhou. 
+                                            {selectedHousing.score > 70 
+                                                ? ' It has excellent accessibility to major amenities including metro stations, shopping malls, and public services.'
+                                                : selectedHousing.score > 40
+                                                    ? ' It has moderate accessibility to urban amenities with reasonable commute times.'
+                                                    : ' It is located in a quieter area with lower accessibility but potentially more affordable prices.'
+                                            }
                                         </div>
                                     </div>
                                 </div>
                             )}
 
-                            {hoverInfo && (
-                                <div style={{position: 'absolute', left: hoverInfo.x, top: hoverInfo.y, transform: 'translate(-50%, -120%)', pointerEvents: 'none', zIndex: 100}} className="glass-panel p-4 rounded-xl shadow-2xl min-w-[200px]">
-                                    <div className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 border-b border-slate-700 pb-1">Cluster Info</div>
-                                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                                        <span className="text-slate-400">Units:</span><span className="text-white font-mono text-right">{hoverInfo.count}</span>
-                                        <span className="text-slate-400">Price:</span><span className="text-yellow-400 font-mono text-right">¥{Math.round(hoverInfo.price).toLocaleString()}</span>
-                                        <span className="text-slate-400">Access:</span><span className="text-blue-400 font-mono text-right">{Math.round(hoverInfo.score)}</span>
+                            <div className="glass-panel legend-panel fade-in-up" style={{position:'absolute', bottom:'24px', right:'24px', padding:'20px', zIndex:10, width:'220px'}}>
+                                <div className="label-sm mb-3">Analysis Legend</div>
+                                <div style={{marginBottom:'16px'}}>
+                                    <div style={{fontSize:'10px', color:'#94a3b8', marginBottom:'8px', fontWeight:'500'}}>Bubble Size = Price</div>
+                                    <div style={{display:'flex', alignItems:'center', gap:'8px', marginTop:'8px'}}>
+                                        <div style={{width:'10px', height:'10px', background:'#64748b', opacity:0.7, borderRadius:'50%', border:'1px solid rgba(255,255,255,0.3)'}}></div>
+                                        <div style={{width:'18px', height:'18px', background:'#64748b', opacity:0.7, borderRadius:'50%', border:'1px solid rgba(255,255,255,0.3)'}}></div>
+                                        <div style={{width:'28px', height:'28px', background:'#64748b', opacity:0.7, borderRadius:'50%', border:'1px solid rgba(255,255,255,0.3)'}}></div>
+                                        <span style={{fontSize:'10px', color:'#64748b', marginLeft:'6px'}}>Low → High</span>
                                     </div>
                                 </div>
-                            )}
+                                <div>
+                                    <div style={{fontSize:'10px', color:'#94a3b8', marginBottom:'6px', fontWeight:'500'}}>Color = Accessibility</div>
+                                    <div style={{height:'8px', borderRadius:'4px', background:'linear-gradient(to right, #5e548e, #4876b0, #3ba0a8, #4abdac, #81d4af, #beedc7)'}}></div>
+                                    <div style={{display:'flex', justifyContent:'space-between', fontSize:'10px', color:'#64748b', marginTop:'4px', fontWeight:'500'}}><span>Low</span><span>High</span></div>
+                                </div>
+                            </div>
                         </>
                     )}
-                    <ReportModal isOpen={showReport} onClose={() => setShowReport(false)} />
                 </div>
             );
         }
