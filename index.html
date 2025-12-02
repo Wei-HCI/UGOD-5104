@@ -1891,12 +1891,17 @@
                             
                             // 对比模式高亮
                             if (comparisonMode) {
-                                if (comparisonA && d.Lat === comparisonA.Lat && d.Lng === comparisonA.Lng) {
-                                    return [239, 68, 68, 240]; // 红色 - Point A
+                                const isPointA = comparisonA && d.Lat === comparisonA.Lat && d.Lng === comparisonA.Lng;
+                                const isPointB = comparisonB && d.Lat === comparisonB.Lat && d.Lng === comparisonB.Lng;
+                                
+                                if (isPointA) {
+                                    return [239, 68, 68, 255]; // 红色 - Point A (更高透明度)
                                 }
-                                if (comparisonB && d.Lat === comparisonB.Lat && d.Lng === comparisonB.Lng) {
-                                    return [59, 130, 246, 240]; // 蓝色 - Point B
+                                if (isPointB) {
+                                    return [59, 130, 246, 255]; // 蓝色 - Point B (更高透明度)
                                 }
+                                // 对比模式下，其他圆圈大幅降低透明度
+                                return [r, g, b, 35];
                             }
                             // 如果是选中的房屋，显示高亮饱和颜色
                             if (selectedHousing && d.Lat === selectedHousing.Lat && d.Lng === selectedHousing.Lng) {
@@ -1908,12 +1913,17 @@
                         getLineColor: d => {
                             // 对比模式边框
                             if (comparisonMode) {
-                                if (comparisonA && d.Lat === comparisonA.Lat && d.Lng === comparisonA.Lng) {
+                                const isPointA = comparisonA && d.Lat === comparisonA.Lat && d.Lng === comparisonA.Lng;
+                                const isPointB = comparisonB && d.Lat === comparisonB.Lat && d.Lng === comparisonB.Lng;
+                                
+                                if (isPointA) {
                                     return [239, 68, 68, 255]; // 红色边框 - A
                                 }
-                                if (comparisonB && d.Lat === comparisonB.Lat && d.Lng === comparisonB.Lng) {
+                                if (isPointB) {
                                     return [59, 130, 246, 255]; // 蓝色边框 - B
                                 }
+                                // 对比模式下，其他圆圈边框也淡化
+                                return [255, 255, 255, 20];
                             }
                             if (selectedHousing && d.Lat === selectedHousing.Lat && d.Lng === selectedHousing.Lng) {
                                 // 选中时使用金黄色边框，更醒目
@@ -2169,111 +2179,6 @@
                                     </div>
                                     <hr style={{borderColor:'rgba(255,255,255,0.08)'}}/>
                                     
-                                    {/* Comparison Mode */}
-                                    <div>
-                                        <div className="label-sm mb-3">Comparison Mode</div>
-                                        <button 
-                                            className={`poi-btn ${comparisonMode ? 'active' : ''}`}
-                                            onClick={() => {
-                                                setComparisonMode(!comparisonMode);
-                                                if (comparisonMode) {
-                                                    setComparisonA(null);
-                                                    setComparisonB(null);
-                                                }
-                                            }}
-                                            style={{width:'100%', justifyContent:'flex-start', marginBottom:'8px'}}
-                                        >
-                                            <div style={{width:'10px', height:'10px', background: comparisonMode ? '#f59e0b' : 'transparent', border:'2px solid #f59e0b', borderRadius:'2px'}}></div>
-                                            {comparisonMode ? 'Exit Comparison' : 'Compare Two Points'}
-                                        </button>
-                                        {comparisonMode && (
-                                            <div style={{fontSize:'10px', color:'#94a3b8', lineHeight:'1.5'}}>
-                                                {!comparisonA && !comparisonB && '👆 Click first housing block (Point A)'}
-                                                {comparisonA && !comparisonB && '👆 Click second housing block (Point B)'}
-                                                {comparisonA && comparisonB && '✓ Both selected. Click any point to restart.'}
-                                            </div>
-                                        )}
-                                        {comparisonMode && comparisonA && (
-                                            <div style={{marginTop:'8px', padding:'8px', background:'rgba(239, 68, 68, 0.1)', border:'1px solid rgba(239, 68, 68, 0.3)', borderRadius:'6px'}}>
-                                                <div style={{fontSize:'10px', color:'#ef4444', fontWeight:'600', marginBottom:'2px'}}>🔴 Point A</div>
-                                                <div style={{fontSize:'11px', color:'#e2e8f0'}}>¥{Math.round(comparisonA.unit_price).toLocaleString()}/㎡ · Score: {comparisonA.score.toFixed(0)}</div>
-                                            </div>
-                                        )}
-                                        {comparisonMode && comparisonB && (
-                                            <div style={{marginTop:'6px', padding:'8px', background:'rgba(59, 130, 246, 0.1)', border:'1px solid rgba(59, 130, 246, 0.3)', borderRadius:'6px'}}>
-                                                <div style={{fontSize:'10px', color:'#3b82f6', fontWeight:'600', marginBottom:'2px'}}>🔵 Point B</div>
-                                                <div style={{fontSize:'11px', color:'#e2e8f0'}}>¥{Math.round(comparisonB.unit_price).toLocaleString()}/㎡ · Score: {comparisonB.score.toFixed(0)}</div>
-                                            </div>
-                                        )}
-                                        {comparisonMode && comparisonA && comparisonB && (
-                                            <div style={{marginTop:'10px', padding:'10px', background:'rgba(255,255,255,0.05)', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.1)'}}>
-                                                <div style={{fontSize:'10px', color:'#f59e0b', fontWeight:'600', marginBottom:'8px'}}>📊 COMPARISON ANALYSIS</div>
-                                                
-                                                {/* Price Comparison */}
-                                                <div style={{marginBottom:'8px'}}>
-                                                    <div style={{display:'flex', justifyContent:'space-between', fontSize:'10px', color:'#64748b', marginBottom:'4px'}}>
-                                                        <span>Price Gap</span>
-                                                        <span style={{color: comparisonA.unit_price > comparisonB.unit_price ? '#ef4444' : '#3b82f6', fontWeight:'600'}}>
-                                                            {(Math.max(comparisonA.unit_price, comparisonB.unit_price) / Math.min(comparisonA.unit_price, comparisonB.unit_price)).toFixed(1)}x
-                                                        </span>
-                                                    </div>
-                                                    <div style={{height:'6px', background:'#1e293b', borderRadius:'3px', overflow:'hidden', display:'flex'}}>
-                                                        <div style={{width:`${(comparisonA.unit_price / (comparisonA.unit_price + comparisonB.unit_price)) * 100}%`, background:'#ef4444', transition:'width 0.3s'}}></div>
-                                                        <div style={{flex:1, background:'#3b82f6'}}></div>
-                                                    </div>
-                                                </div>
-                                                
-                                                {/* Access Score Comparison */}
-                                                <div style={{marginBottom:'8px'}}>
-                                                    <div style={{display:'flex', justifyContent:'space-between', fontSize:'10px', color:'#64748b', marginBottom:'4px'}}>
-                                                        <span>Access Score</span>
-                                                        <span style={{color:'#10b981', fontWeight:'600'}}>
-                                                            {Math.abs(comparisonA.score - comparisonB.score) < 5 ? '≈ Similar' : 
-                                                             comparisonA.score > comparisonB.score ? 'A > B' : 'B > A'}
-                                                        </span>
-                                                    </div>
-                                                    <div style={{height:'6px', background:'#1e293b', borderRadius:'3px', overflow:'hidden', display:'flex'}}>
-                                                        <div style={{width:`${(comparisonA.score / (comparisonA.score + comparisonB.score)) * 100}%`, background:'#ef4444', transition:'width 0.3s'}}></div>
-                                                        <div style={{flex:1, background:'#3b82f6'}}></div>
-                                                    </div>
-                                                </div>
-                                                
-                                                {/* Value Ratio - Price per Access Point */}
-                                                <div style={{marginBottom:'8px'}}>
-                                                    <div style={{display:'flex', justifyContent:'space-between', fontSize:'10px', color:'#64748b', marginBottom:'4px'}}>
-                                                        <span>Value Ratio (¥/Score)</span>
-                                                    </div>
-                                                    <div style={{display:'flex', gap:'8px', fontSize:'10px'}}>
-                                                        <div style={{flex:1, textAlign:'center', padding:'4px', background:'rgba(239,68,68,0.1)', borderRadius:'4px'}}>
-                                                            <div style={{color:'#ef4444'}}>A: ¥{Math.round(comparisonA.unit_price / comparisonA.score).toLocaleString()}</div>
-                                                        </div>
-                                                        <div style={{flex:1, textAlign:'center', padding:'4px', background:'rgba(59,130,246,0.1)', borderRadius:'4px'}}>
-                                                            <div style={{color:'#3b82f6'}}>B: ¥{Math.round(comparisonB.unit_price / comparisonB.score).toLocaleString()}</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                
-                                                {/* Insight */}
-                                                <div style={{fontSize:'9px', color:'#64748b', lineHeight:'1.5', marginTop:'8px', padding:'8px', background:'rgba(245,158,11,0.1)', borderRadius:'4px', borderLeft:'2px solid #f59e0b'}}>
-                                                    {(() => {
-                                                        const priceRatio = comparisonA.unit_price / comparisonB.unit_price;
-                                                        const scoreRatio = comparisonA.score / comparisonB.score;
-                                                        if (priceRatio > 1.5 && Math.abs(scoreRatio - 1) < 0.2) {
-                                                            return '💡 Similar accessibility but huge price gap - classic spatial inequality pattern.';
-                                                        } else if (priceRatio > 1.3 && scoreRatio > 1.2) {
-                                                            return '💡 Higher price reflects better accessibility - market pricing is rational here.';
-                                                        } else if (priceRatio < 0.8 && scoreRatio > 1) {
-                                                            return '💡 Lower price but better access - potential undervalued area!';
-                                                        } else {
-                                                            return '💡 Compare how location affects property value vs. public resource access.';
-                                                        }
-                                                    })()}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <hr style={{borderColor:'rgba(255,255,255,0.08)'}}/>
-                                    
                                     {/* Isochrone Controls */}
                                     <div>
                                         <div className="label-sm mb-3">Accessibility Analysis</div>
@@ -2401,83 +2306,273 @@
                                                 onChange={e=>setFilterAccess([filterAccess[0], Math.max(Number(e.target.value), filterAccess[0] + 1)])}/>
                                         </div>
                                     </div>
+                                    {/* Reset Button */}
+                                    <button
+                                        onClick={() => {
+                                            setFilterPrice([10000, 200000]);
+                                            setFilterAccess([0, 100]);
+                                            setSelectedPersona('standard');
+                                            setPoiVisible({subway: false, mall: false, school: false, park: false, public_service: false});
+                                            setComparisonMode(false);
+                                            setComparisonA(null);
+                                            setComparisonB(null);
+                                            setShowStaticBuffer(false);
+                                            setShowDynamicIsochrone(false);
+                                        }}
+                                        style={{
+                                            width: '100%',
+                                            marginTop: '16px',
+                                            padding: '10px',
+                                            background: 'rgba(255,255,255,0.05)',
+                                            border: '1px solid rgba(255,255,255,0.1)',
+                                            borderRadius: '8px',
+                                            color: '#94a3b8',
+                                            fontSize: '12px',
+                                            fontWeight: '500',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '6px'
+                                        }}
+                                        onMouseOver={e => {e.target.style.background = 'rgba(255,255,255,0.1)'; e.target.style.color = '#e2e8f0';}}
+                                        onMouseOut={e => {e.target.style.background = 'rgba(255,255,255,0.05)'; e.target.style.color = '#94a3b8';}}
+                                    >
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                                            <path d="M3 3v5h5"/>
+                                        </svg>
+                                        Reset All Filters
+                                    </button>
                                 </div>
                             </div>
 
-                            {/* Housing Detail Card - Top Right */}
-                            {selectedHousing && (
-                                <div className="glass-panel fade-in-up" style={{position:'absolute', top:'90px', right:'24px', padding:'0', zIndex:10, width:'320px', overflow:'hidden'}}>
-                                    {/* Close Button */}
-                                    <button 
-                                        onClick={() => setSelectedHousing(null)}
-                                        style={{position:'absolute', top:'12px', right:'12px', background:'rgba(0,0,0,0.5)', border:'none', borderRadius:'50%', width:'28px', height:'28px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1}}
-                                    >
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                                            <path d="M18 6L6 18M6 6l12 12"/>
-                                        </svg>
-                                    </button>
+                            {/* Housing Detail Cards - Comparison Mode */}
+                            {(selectedHousing || comparisonA) && (
+                                <div style={{position:'absolute', top:'90px', right:'24px', zIndex:10, display:'flex', gap:'12px', flexDirection: comparisonMode && comparisonA && comparisonB ? 'row' : 'column'}}>
                                     
-                                    {/* Housing Image - Random from house1-4.png */}
-                                    <div style={{width:'100%', height:'160px', background:'#f8fafc', display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden'}}>
-                                        <img 
-                                            src={`house${((Math.floor(selectedHousing.Lat * 10000) + Math.floor(selectedHousing.Lng * 10000)) % 4) + 1}.png`}
-                                            alt="Housing"
-                                            style={{width:'100%', height:'100%', objectFit:'contain', background:'#fff'}}
-                                            onError={(e) => {
-                                                e.target.style.display = 'none';
-                                                e.target.nextSibling.style.display = 'flex';
-                                            }}
-                                        />
-                                        <div style={{display:'none', textAlign:'center', color:'#64748b', position:'absolute', flexDirection:'column', alignItems:'center'}}>
-                                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{marginBottom:'8px'}}>
-                                                <rect x="3" y="3" width="18" height="18" rx="2"/>
-                                                <circle cx="8.5" cy="8.5" r="1.5"/>
-                                                <path d="M21 15l-5-5L5 21"/>
-                                            </svg>
-                                            <div style={{fontSize:'11px'}}>Housing Image</div>
-                                        </div>
-                                        {/* Price Badge */}
-                                        <div style={{position:'absolute', bottom:'12px', left:'12px', background:'rgba(250, 204, 21, 0.95)', color:'#000', padding:'6px 12px', borderRadius:'6px', fontSize:'14px', fontWeight:'600', boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
-                                            ¥{Math.round(selectedHousing.unit_price).toLocaleString()}/㎡
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Content */}
-                                    <div style={{padding:'16px'}}>
-                                        <div style={{fontSize:'15px', fontWeight:'600', color:'#e2e8f0', marginBottom:'12px'}}>Housing Block Details</div>
-                                        
-                                        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', marginBottom:'12px'}}>
-                                            <div style={{background:'rgba(255,255,255,0.05)', padding:'10px', borderRadius:'8px'}}>
-                                                <div style={{fontSize:'10px', color:'#64748b', marginBottom:'4px'}}>UNIT PRICE</div>
-                                                <div style={{fontSize:'14px', color:'#facc15', fontFamily:'JetBrains Mono'}}>
-                                                    ¥{Math.round(selectedHousing.unit_price).toLocaleString()}
+                                    {/* Card A - Primary Selection or Comparison A */}
+                                    {(comparisonMode ? comparisonA : selectedHousing) && (
+                                        <div className="glass-panel fade-in-up" style={{padding:'0', width: comparisonMode && comparisonA && comparisonB ? '280px' : '320px', overflow:'hidden', position:'relative'}}>
+                                            {/* Point Label for Comparison */}
+                                            {comparisonMode && comparisonA && (
+                                                <div style={{position:'absolute', top:'12px', left:'12px', background:'#ef4444', color:'white', padding:'4px 10px', borderRadius:'4px', fontSize:'11px', fontWeight:'600', zIndex:2}}>
+                                                    Point A
+                                                </div>
+                                            )}
+                                            {/* Close Button */}
+                                            <button 
+                                                onClick={() => {
+                                                    if (comparisonMode) {
+                                                        setComparisonMode(false);
+                                                        setComparisonA(null);
+                                                        setComparisonB(null);
+                                                    }
+                                                    setSelectedHousing(null);
+                                                }}
+                                                style={{position:'absolute', top:'12px', right:'12px', background:'rgba(0,0,0,0.5)', border:'none', borderRadius:'50%', width:'28px', height:'28px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', zIndex:2}}
+                                            >
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                                                    <path d="M18 6L6 18M6 6l12 12"/>
+                                                </svg>
+                                            </button>
+                                            
+                                            {/* Housing Image */}
+                                            <div style={{width:'100%', height: comparisonMode && comparisonB ? '100px' : '140px', background:'#f8fafc', display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden'}}>
+                                                <img 
+                                                    src={`house${((Math.floor((comparisonMode ? comparisonA : selectedHousing).Lat * 10000) + Math.floor((comparisonMode ? comparisonA : selectedHousing).Lng * 10000)) % 4) + 1}.png`}
+                                                    alt="Housing"
+                                                    style={{width:'100%', height:'100%', objectFit:'contain', background:'#fff'}}
+                                                />
+                                                {/* Price Badge */}
+                                                <div style={{position:'absolute', bottom:'8px', left:'8px', background:'rgba(250, 204, 21, 0.95)', color:'#000', padding:'4px 10px', borderRadius:'4px', fontSize:'13px', fontWeight:'600'}}>
+                                                    ¥{Math.round((comparisonMode ? comparisonA : selectedHousing).unit_price).toLocaleString()}/㎡
                                                 </div>
                                             </div>
-                                            <div style={{background:'rgba(255,255,255,0.05)', padding:'10px', borderRadius:'8px'}}>
-                                                <div style={{fontSize:'10px', color:'#64748b', marginBottom:'4px'}}>ACCESS SCORE</div>
-                                                <div style={{fontSize:'14px', color:'#60a5fa', fontFamily:'JetBrains Mono'}}>
-                                                    {selectedHousing.score.toFixed(1)}
+                                            
+                                            {/* Content */}
+                                            <div style={{padding:'12px'}}>
+                                                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px', marginBottom:'10px'}}>
+                                                    <div style={{background:'rgba(255,255,255,0.05)', padding:'8px', borderRadius:'6px'}}>
+                                                        <div style={{fontSize:'9px', color:'#64748b', marginBottom:'2px'}}>PRICE</div>
+                                                        <div style={{fontSize:'13px', color:'#facc15', fontFamily:'Roboto Mono'}}>
+                                                            ¥{Math.round((comparisonMode ? comparisonA : selectedHousing).unit_price).toLocaleString()}
+                                                        </div>
+                                                    </div>
+                                                    <div style={{background:'rgba(255,255,255,0.05)', padding:'8px', borderRadius:'6px'}}>
+                                                        <div style={{fontSize:'9px', color:'#64748b', marginBottom:'2px'}}>ACCESS</div>
+                                                        <div style={{fontSize:'13px', color:'#60a5fa', fontFamily:'Roboto Mono'}}>
+                                                            {(comparisonMode ? comparisonA : selectedHousing).score.toFixed(1)}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Compare Button - Only show when not in comparison mode */}
+                                                {!comparisonMode && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setComparisonMode(true);
+                                                            setComparisonA(selectedHousing);
+                                                            setComparisonB(null);
+                                                        }}
+                                                        style={{
+                                                            width: '100%',
+                                                            padding: '10px',
+                                                            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                                                            border: 'none',
+                                                            borderRadius: '8px',
+                                                            color: 'white',
+                                                            fontSize: '12px',
+                                                            fontWeight: '600',
+                                                            cursor: 'pointer',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            gap: '6px',
+                                                            transition: 'all 0.2s'
+                                                        }}
+                                                    >
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                            <path d="M16 3h5v5M8 3H3v5M3 16v5h5M21 16v5h-5M21 3l-7 7M3 21l7-7"/>
+                                                        </svg>
+                                                        Compare with Another
+                                                    </button>
+                                                )}
+                                                
+                                                {/* Waiting for Point B */}
+                                                {comparisonMode && !comparisonB && (
+                                                    <div style={{textAlign:'center', padding:'8px', background:'rgba(245,158,11,0.1)', borderRadius:'6px', border:'1px dashed #f59e0b'}}>
+                                                        <div style={{fontSize:'11px', color:'#f59e0b'}}>👆 Click another housing to compare</div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                    
+                                    {/* Card B - Comparison B */}
+                                    {comparisonMode && comparisonB && (
+                                        <div className="glass-panel fade-in-up" style={{padding:'0', width:'280px', overflow:'hidden', position:'relative'}}>
+                                            {/* Point Label */}
+                                            <div style={{position:'absolute', top:'12px', left:'12px', background:'#3b82f6', color:'white', padding:'4px 10px', borderRadius:'4px', fontSize:'11px', fontWeight:'600', zIndex:2}}>
+                                                Point B
+                                            </div>
+                                            {/* Close Button */}
+                                            <button 
+                                                onClick={() => setComparisonB(null)}
+                                                style={{position:'absolute', top:'12px', right:'12px', background:'rgba(0,0,0,0.5)', border:'none', borderRadius:'50%', width:'28px', height:'28px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', zIndex:2}}
+                                            >
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                                                    <path d="M18 6L6 18M6 6l12 12"/>
+                                                </svg>
+                                            </button>
+                                            
+                                            {/* Housing Image */}
+                                            <div style={{width:'100%', height:'100px', background:'#f8fafc', display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden'}}>
+                                                <img 
+                                                    src={`house${((Math.floor(comparisonB.Lat * 10000) + Math.floor(comparisonB.Lng * 10000)) % 4) + 1}.png`}
+                                                    alt="Housing"
+                                                    style={{width:'100%', height:'100%', objectFit:'contain', background:'#fff'}}
+                                                />
+                                                {/* Price Badge */}
+                                                <div style={{position:'absolute', bottom:'8px', left:'8px', background:'rgba(250, 204, 21, 0.95)', color:'#000', padding:'4px 10px', borderRadius:'4px', fontSize:'13px', fontWeight:'600'}}>
+                                                    ¥{Math.round(comparisonB.unit_price).toLocaleString()}/㎡
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Content */}
+                                            <div style={{padding:'12px'}}>
+                                                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px'}}>
+                                                    <div style={{background:'rgba(255,255,255,0.05)', padding:'8px', borderRadius:'6px'}}>
+                                                        <div style={{fontSize:'9px', color:'#64748b', marginBottom:'2px'}}>PRICE</div>
+                                                        <div style={{fontSize:'13px', color:'#facc15', fontFamily:'Roboto Mono'}}>
+                                                            ¥{Math.round(comparisonB.unit_price).toLocaleString()}
+                                                        </div>
+                                                    </div>
+                                                    <div style={{background:'rgba(255,255,255,0.05)', padding:'8px', borderRadius:'6px'}}>
+                                                        <div style={{fontSize:'9px', color:'#64748b', marginBottom:'2px'}}>ACCESS</div>
+                                                        <div style={{fontSize:'13px', color:'#60a5fa', fontFamily:'Roboto Mono'}}>
+                                                            {comparisonB.score.toFixed(1)}
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        
-                                        <div style={{background:'rgba(255,255,255,0.05)', padding:'10px', borderRadius:'8px', marginBottom:'12px'}}>
-                                            <div style={{fontSize:'10px', color:'#64748b', marginBottom:'4px'}}>LOCATION</div>
-                                            <div style={{fontSize:'12px', color:'#94a3b8', fontFamily:'JetBrains Mono'}}>
-                                                {selectedHousing.Lat.toFixed(4)}°N, {selectedHousing.Lng.toFixed(4)}°E
+                                    )}
+                                    
+                                    {/* Comparison Analysis Card */}
+                                    {comparisonMode && comparisonA && comparisonB && (
+                                        <div className="glass-panel fade-in-up" style={{padding:'14px', width:'280px'}}>
+                                            <div style={{fontSize:'12px', color:'#f59e0b', fontWeight:'600', marginBottom:'12px', display:'flex', alignItems:'center', gap:'6px'}}>
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                    <path d="M3 3v18h18"/>
+                                                    <path d="M18 17V9M13 17V5M8 17v-3"/>
+                                                </svg>
+                                                Comparison Analysis
+                                            </div>
+                                            
+                                            {/* Price Comparison */}
+                                            <div style={{marginBottom:'10px'}}>
+                                                <div style={{display:'flex', justifyContent:'space-between', fontSize:'10px', color:'#64748b', marginBottom:'4px'}}>
+                                                    <span>Price Difference</span>
+                                                    <span style={{color:'#facc15', fontWeight:'600'}}>
+                                                        {comparisonA.unit_price > comparisonB.unit_price ? 'A' : 'B'} is {((Math.abs(comparisonA.unit_price - comparisonB.unit_price) / Math.min(comparisonA.unit_price, comparisonB.unit_price)) * 100).toFixed(0)}% higher
+                                                    </span>
+                                                </div>
+                                                <div style={{height:'6px', background:'#1e293b', borderRadius:'3px', overflow:'hidden', display:'flex'}}>
+                                                    <div style={{width:`${(comparisonA.unit_price / (comparisonA.unit_price + comparisonB.unit_price)) * 100}%`, background:'#ef4444', transition:'width 0.3s'}}></div>
+                                                    <div style={{flex:1, background:'#3b82f6'}}></div>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Access Comparison */}
+                                            <div style={{marginBottom:'10px'}}>
+                                                <div style={{display:'flex', justifyContent:'space-between', fontSize:'10px', color:'#64748b', marginBottom:'4px'}}>
+                                                    <span>Accessibility</span>
+                                                    <span style={{color:'#60a5fa', fontWeight:'600'}}>
+                                                        {comparisonA.score > comparisonB.score ? 'A' : 'B'} is better
+                                                    </span>
+                                                </div>
+                                                <div style={{height:'6px', background:'#1e293b', borderRadius:'3px', overflow:'hidden', display:'flex'}}>
+                                                    <div style={{width:`${(comparisonA.score / (comparisonA.score + comparisonB.score)) * 100}%`, background:'#ef4444', transition:'width 0.3s'}}></div>
+                                                    <div style={{flex:1, background:'#3b82f6'}}></div>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Value Score */}
+                                            <div style={{display:'flex', gap:'8px', marginBottom:'10px'}}>
+                                                <div style={{flex:1, textAlign:'center', padding:'8px', background:'rgba(239,68,68,0.1)', borderRadius:'6px', border:'1px solid rgba(239,68,68,0.2)'}}>
+                                                    <div style={{fontSize:'9px', color:'#64748b', marginBottom:'2px'}}>Value (¥/Score)</div>
+                                                    <div style={{fontSize:'12px', color:'#ef4444', fontWeight:'600'}}>¥{Math.round(comparisonA.unit_price / comparisonA.score).toLocaleString()}</div>
+                                                </div>
+                                                <div style={{flex:1, textAlign:'center', padding:'8px', background:'rgba(59,130,246,0.1)', borderRadius:'6px', border:'1px solid rgba(59,130,246,0.2)'}}>
+                                                    <div style={{fontSize:'9px', color:'#64748b', marginBottom:'2px'}}>Value (¥/Score)</div>
+                                                    <div style={{fontSize:'12px', color:'#3b82f6', fontWeight:'600'}}>¥{Math.round(comparisonB.unit_price / comparisonB.score).toLocaleString()}</div>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Insight */}
+                                            <div style={{fontSize:'10px', color:'#94a3b8', lineHeight:'1.5', padding:'10px', background:'rgba(245,158,11,0.1)', borderRadius:'6px', borderLeft:'3px solid #f59e0b'}}>
+                                                {(() => {
+                                                    const valueA = comparisonA.unit_price / comparisonA.score;
+                                                    const valueB = comparisonB.unit_price / comparisonB.score;
+                                                    const betterValue = valueA < valueB ? 'A' : 'B';
+                                                    const priceDiff = Math.abs(comparisonA.unit_price - comparisonB.unit_price);
+                                                    const scoreDiff = Math.abs(comparisonA.score - comparisonB.score);
+                                                    
+                                                    if (scoreDiff < 5 && priceDiff > 20000) {
+                                                        return `💡 Similar accessibility but ¥${Math.round(priceDiff).toLocaleString()} price gap - spatial inequality at work.`;
+                                                    } else if (betterValue === 'A' && comparisonA.unit_price < comparisonB.unit_price) {
+                                                        return `💡 Point A offers better value - lower price with comparable accessibility.`;
+                                                    } else if (betterValue === 'B' && comparisonB.unit_price < comparisonA.unit_price) {
+                                                        return `💡 Point B offers better value - lower price with comparable accessibility.`;
+                                                    } else {
+                                                        return `💡 Point ${betterValue} has better value ratio (¥/accessibility point).`;
+                                                    }
+                                                })()}
                                             </div>
                                         </div>
-                                        
-                                        <div style={{fontSize:'11px', color:'#64748b', lineHeight:'1.6'}}>
-                                            This housing block is located in Tianhe District, Guangzhou. 
-                                            {selectedHousing.score > 70 
-                                                ? ' It has excellent accessibility to major amenities including metro stations, shopping malls, and public services.'
-                                                : selectedHousing.score > 40
-                                                    ? ' It has moderate accessibility to urban amenities with reasonable commute times.'
-                                                    : ' It is located in a quieter area with lower accessibility but potentially more affordable prices.'
-                                            }
-                                        </div>
-                                    </div>
+                                    )}
                                 </div>
                             )}
 
